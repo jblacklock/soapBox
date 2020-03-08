@@ -269,9 +269,9 @@ class testTubeRack:
                         break
 
     def reduceSolventWhenFillToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
-        self.emptyTubes(solvents)
-        self.fillToPrice(ingredientsToChange)
-        self.fillToConcentration(solvents)
+        self.emptyTubes(solvents) # empty tubes selected as solvents in the list
+        self.fillToPrice(ingredientsToChange) # fill the ingredients that can change
+        self.fillToConcentration(solvents) # refill the solvents to max concentration
 
     def increaseSolventWhenFillToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
         self.reduceToPrice(ingredientsToChange)
