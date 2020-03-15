@@ -120,7 +120,7 @@ class testTubeRack:
         return finalList
 
     def exportFormula(self) -> None:
-        workbook = xlsxwriter.Workbook('formulas.xlsx') 
+        workbook = xlsxwriter.Workbook('Formulas/'+self.name+'.xlsx') 
         worksheet = workbook.add_worksheet(self.name) 
         worksheet.write('A1', 'Part Number') 
         worksheet.write('B1', 'Description') 
