@@ -1,6 +1,9 @@
 from typing import List, Any, Tuple
 import openpyxl 
 import xlsxwriter 
+import pandas as pd
+import xlrd
+
 class testTube:
 
 # create a testTube, name, price, concentration, and maxconcentration, however, maxConcentration is currently useless
@@ -320,3 +323,37 @@ class testTubeRack:
 # TODO: repr should be the name of the thing we are trying to make and the ingredients we are using @ their concentratinos
 # TODO: Calculate the amount of water needed to finalize the formula
 # TODO: Create a visual user interface wooooot - Find GUI library for python
+# TODO: be able to delete a testtube from a testtube rack
+
+#######################################################################################################################################################################
+
+class rackMaker:
+
+    def createTestTubeRack(self, formulaName: str) -> testTubeRack:
+        # Give the location of the file 
+        loc = ('Formulas/'+formulaName+'.xlsx') 
+        # To open Workbook 
+        wb = xlrd.open_workbook(loc) 
+        sheet = wb.sheet_by_index(0) 
+        i = sheet.nrows
+        # sheet.row_values(1)
+        targetValue = 0
+        allTestubes = []
+        for x in range(1, i):
+            value = sheet.row_values(x)
+            print(str(value[2])+"*"+str(value[3]))
+            targetValue += value[2] * value[3]
+            allTestubes.append(value)
+
+        ttr = testTubeRack(formulaName, targetValue)
+
+        for tt in allTestubes:
+            ttr.createRackTube(tt[0], tt[1], tt[3], tt[2])
+
+        return ttr
+
+
+            
+
+    
+        
