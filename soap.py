@@ -1,4 +1,10 @@
 from typing import List, Any, Tuple
+import openpyxl 
+import xlsxwriter 
+import pandas as pd
+import xlrd
+import glob, os
+
 class testTube:
 
 # create a testTube, name, price, concentration, and maxconcentration, however, maxConcentration is currently useless
@@ -106,6 +112,43 @@ class testTubeRack:
             a.append([self.testTubes[i].name, self.testTubes[i].concentration])
         return a
 
+    def createIngredientArray(self) -> List[Any]:
+        finalList = []
+        for t in self.testTubes:
+            pNum = t.rawMaterialNumber
+            desc = t.name
+            quantity = t.concentration
+            curCost = t.getCost()
+            partialArray = [pNum, desc, quantity, curCost]
+            finalList.append(partialArray)
+        return finalList
+
+    def exportFormula(self) -> None:
+        workbook = xlsxwriter.Workbook('Formulas/'+self.name+'.xlsx') 
+        worksheet = workbook.add_worksheet(self.name) 
+        worksheet.write('B1', 'Part Number') 
+        worksheet.write('C1', 'Description') 
+        worksheet.write('E1', 'Quantity') 
+        worksheet.write('F1', 'Current Cost')
+
+        # Some data we want to write to the worksheet. 
+        scores = self.createIngredientArray()
+        
+        # Start from the first cell. Rows and 
+        # columns are zero indexed. 
+        row = 1
+        col = 1
+        
+        # Iterate over the data and write it out row by row. 
+        for partNumber, Description, Quantity, currentCost in (scores): 
+            worksheet.write(row, col, partNumber) 
+            worksheet.write(row, col + 1, Description) 
+            worksheet.write(row, col + 3, Quantity)
+            worksheet.write(row, col + 4, currentCost)
+            row += 1
+        
+        workbook.close()  
+        
 # change the target price of the rack
     def changePricePoint(self, amount: float) -> bool:
         if amount < 0: # check bounds
@@ -281,3 +324,43 @@ class testTubeRack:
 # TODO: repr should be the name of the thing we are trying to make and the ingredients we are using @ their concentratinos
 # TODO: Calculate the amount of water needed to finalize the formula
 # TODO: Create a visual user interface wooooot - Find GUI library for python
+# TODO: be able to delete a testtube from a testtube rack
+
+#######################################################################################################################################################################
+
+class rackMaker:
+
+    def createTestTubeRack(self, formulaName: str) -> testTubeRack:
+        # Give the location of the file 
+        loc = ('Formulas/'+formulaName+'.xlsx') 
+        # To open Workbook 
+        wb = xlrd.open_workbook(loc) 
+        sheet = wb.sheet_by_index(0) 
+        i = sheet.nrows
+        # sheet.row_values(1)
+        targetValue = 0
+        allTestubes = []
+        for x in range(1, i):
+            value = sheet.row_values(x)
+            print(str(value[4])+"*"+str(value[5]))
+            targetValue += value[4] * value[5]
+            allTestubes.append(value)
+
+        ttr = testTubeRack(formulaName, targetValue)
+
+        for tt in allTestubes:
+            ttr.createRackTube(tt[1], tt[2], tt[5], tt[4])
+
+        return ttr
+
+    def getNamesOfExcelFiles(self) -> List[str]: 
+        dirPath = os.path.dirname(__file__)    
+        os.chdir(dirPath+"/Formulas")
+        fileNames = []
+        for file in glob.glob("*.xlsx"):
+            fileNames.append(file)
+        return fileNames
+            
+
+    
+        
