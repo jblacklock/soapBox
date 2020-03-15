@@ -3,6 +3,7 @@ import openpyxl
 import xlsxwriter 
 import pandas as pd
 import xlrd
+import glob, os
 
 class testTube:
 
@@ -125,10 +126,10 @@ class testTubeRack:
     def exportFormula(self) -> None:
         workbook = xlsxwriter.Workbook('Formulas/'+self.name+'.xlsx') 
         worksheet = workbook.add_worksheet(self.name) 
-        worksheet.write('A1', 'Part Number') 
-        worksheet.write('B1', 'Description') 
-        worksheet.write('C1', 'Quantity') 
-        worksheet.write('D1', 'Current Cost')
+        worksheet.write('B1', 'Part Number') 
+        worksheet.write('C1', 'Description') 
+        worksheet.write('E1', 'Quantity') 
+        worksheet.write('F1', 'Current Cost')
 
         # Some data we want to write to the worksheet. 
         scores = self.createIngredientArray()
@@ -136,14 +137,14 @@ class testTubeRack:
         # Start from the first cell. Rows and 
         # columns are zero indexed. 
         row = 1
-        col = 0
+        col = 1
         
         # Iterate over the data and write it out row by row. 
         for partNumber, Description, Quantity, currentCost in (scores): 
             worksheet.write(row, col, partNumber) 
             worksheet.write(row, col + 1, Description) 
-            worksheet.write(row, col + 2, Quantity)
-            worksheet.write(row, col + 3, currentCost)
+            worksheet.write(row, col + 3, Quantity)
+            worksheet.write(row, col + 4, currentCost)
             row += 1
         
         workbook.close()  
@@ -341,18 +342,24 @@ class rackMaker:
         allTestubes = []
         for x in range(1, i):
             value = sheet.row_values(x)
-            print(str(value[2])+"*"+str(value[3]))
-            targetValue += value[2] * value[3]
+            print(str(value[4])+"*"+str(value[5]))
+            targetValue += value[4] * value[5]
             allTestubes.append(value)
 
         ttr = testTubeRack(formulaName, targetValue)
 
         for tt in allTestubes:
-            ttr.createRackTube(tt[0], tt[1], tt[3], tt[2])
+            ttr.createRackTube(tt[1], tt[2], tt[5], tt[4])
 
         return ttr
 
-
+    def getNamesOfExcelFiles(self) -> List[str]: 
+        dirPath = os.path.dirname(__file__)    
+        os.chdir(dirPath+"/Formulas")
+        fileNames = []
+        for file in glob.glob("*.xlsx"):
+            fileNames.append(file)
+        return fileNames
             
 
     
