@@ -1,4 +1,6 @@
 from typing import List, Any, Tuple
+import openpyxl 
+import xlsxwriter 
 class testTube:
 
 # create a testTube, name, price, concentration, and maxconcentration, however, maxConcentration is currently useless
@@ -106,6 +108,43 @@ class testTubeRack:
             a.append([self.testTubes[i].name, self.testTubes[i].concentration])
         return a
 
+    def createIngredientArray(self) -> List[Any]:
+        finalList = []
+        for t in self.testTubes:
+            pNum = t.rawMaterialNumber
+            desc = t.name
+            quantity = t.concentration
+            curCost = t.getCost()
+            partialArray = [pNum, desc, quantity, curCost]
+            finalList.append(partialArray)
+        return finalList
+
+    def exportFormula(self) -> None:
+        workbook = xlsxwriter.Workbook('formulas.xlsx') 
+        worksheet = workbook.add_worksheet(self.name) 
+        worksheet.write('A1', 'Part Number') 
+        worksheet.write('B1', 'Description') 
+        worksheet.write('C1', 'Quantity') 
+        worksheet.write('D1', 'Current Cost')
+
+        # Some data we want to write to the worksheet. 
+        scores = self.createIngredientArray()
+        
+        # Start from the first cell. Rows and 
+        # columns are zero indexed. 
+        row = 1
+        col = 0
+        
+        # Iterate over the data and write it out row by row. 
+        for partNumber, Description, Quantity, currentCost in (scores): 
+            worksheet.write(row, col, partNumber) 
+            worksheet.write(row, col + 1, Description) 
+            worksheet.write(row, col + 2, Quantity)
+            worksheet.write(row, col + 3, currentCost)
+            row += 1
+        
+        workbook.close()  
+        
 # change the target price of the rack
     def changePricePoint(self, amount: float) -> bool:
         if amount < 0: # check bounds

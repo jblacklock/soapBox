@@ -178,3 +178,5 @@ apc1.reduceSolventWhenFillToPricePoint(["water"], ["glucopon", "fragrance"])
 print(apc1.formula())
 print(apc1.getCost())
 print(len("help"))
+
+apc1.exportFormula()
