@@ -287,6 +287,9 @@ class testTubeRack:
                     self.testTubes[i].addByConcentration(amount - self.testTubes[i].concentration) # if < 100 change the concentration to the desired setpoint
                     break
 
+
+
+
 # Example: Current Tube Cost = $10, amount = $4, reduce concentration by $6
 # if amount is greater than tube cost or < 0, do nothing
     def decreaseRackTubeToPrice(self, ingredient: str, amount: float) -> None:
@@ -298,6 +301,8 @@ class testTubeRack:
                         break
                     else:
                         break
+
+
 
 # Example: Current Tube concentration = 10, amount = 4, reduce concentration by 6
 # if amount is greater than tube concentration or < 0, do nothing    
@@ -311,10 +316,14 @@ class testTubeRack:
                     else:
                         break
 
+
+
     def reduceSolventWhenFillToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
         self.emptyTubes(solvents) # empty tubes selected as solvents in the list
         self.fillToPrice(ingredientsToChange) # fill the ingredients that can change
         self.fillToConcentration(solvents) # refill the solvents to max concentration
+
+
 
     def increaseSolventWhenFillToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
         self.reduceToPrice(ingredientsToChange)
@@ -332,7 +341,9 @@ class rackMaker:
 
     def createTestTubeRack(self, formulaName: str) -> testTubeRack:
         # Give the location of the file 
-        loc = ('Formulas/'+formulaName+'.xlsx') 
+        dirPath = os.path.dirname(__file__)    
+        os.chdir(dirPath+"/Formulas")
+        loc = (formulaName+'.xlsx') 
         # To open Workbook 
         wb = xlrd.open_workbook(loc) 
         sheet = wb.sheet_by_index(0) 
@@ -353,11 +364,16 @@ class rackMaker:
 
         return ttr
 
+
+
     def getNamesOfExcelFiles(self) -> List[str]: 
+
         dirPath = os.path.dirname(__file__)    
         os.chdir(dirPath+"/Formulas")
         fileNames = []
+        
         for file in glob.glob("*.xlsx"):
+            file = file[:-5]
             fileNames.append(file)
         return fileNames
             

@@ -1,7 +1,7 @@
 import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
 from tkinter import *
-from soap import rackMaker
+from soap import rackMaker, testTubeRack
 
 class SampleApp(tk.Tk):
 
@@ -30,12 +30,17 @@ class SampleApp(tk.Tk):
             # will be the one that is visible.
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("StartPage")
+        self.show_frame("StartPage", "")
 
-    def show_frame(self, page_name):
+
+    def show_frame(self, page_name: str, formula: str) -> None:
         '''Show a frame for the given page name'''
         frame = self.frames[page_name]
+        if page_name == "PageOne":
+            print("it happened")
+            self.frames[page_name].setFormula(formula)
         frame.tkraise()
+
 
 class StartPage(tk.Frame):
 
@@ -50,8 +55,9 @@ class StartPage(tk.Frame):
         t = 1
         y = 0
         for x in xcelFiles:
-            tk.Button(self, text = x, width = (100//6), height = 3, fg="white", bg ="teal", command=lambda: controller.show_frame("PageOne")).grid(row = t, column = y)
-
+            print(x)
+            tk.Button(self, text = x, width = (100//6), height = 3, fg="white", bg ="teal", command=lambda x=x: controller.show_frame("PageOne", x)).grid(row = t, column = y)
+            # command=lambda name=name: self.a(name)
             y += 1
             if y == 6:
                 y = 0
@@ -59,16 +65,36 @@ class StartPage(tk.Frame):
 
         # button1 = tk.Button(self, text="Go to Page One", command=lambda: controller.show_frame("PageOne"))
 
+
 class PageOne(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-        label = tk.Label(self, text="This is page 1", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
+        formula = "poop"
+        button = tk.Button(self, text="<- Back",
+                           command=lambda: controller.show_frame("StartPage", ""))
         button.pack()
+        self.label = tk.Label(self, text = formula, font=controller.title_font)
+        self.label.pack(side="top", fill="x", pady=10)
+        
+
+    def setFormula(self, formula: str):
+        self.formula = formula
+        print(self.formula)
+        self.label.config(text = self.formula)
+        if formula == "Create New Formula":
+            uf= "Untitled Formula"
+            rack = testTubeRack(uf, 0)
+            self.label.config(text = uf)
+        else:    
+            formulaGenerator = rackMaker()
+            ttr= formulaGenerator.createTestTubeRack(formula)
+            # ray = ttr.formula
+            # pricePointLabel = ray[]
+
+
+    
         
 
 
