@@ -1,7 +1,7 @@
 import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
 from tkinter import *
-from soap import rackMaker, testTubeRack
+from soap import rackMaker, testTubeRack, testTube
 
 class SampleApp(tk.Tk):
 
@@ -69,34 +69,103 @@ class StartPage(tk.Frame):
 class PageOne(tk.Frame):
 
     def __init__(self, parent, controller):
+        self.ListOfWidgets = []
+        self.ListOfSolvents = []
         tk.Frame.__init__(self, parent)
         self.controller = controller
         formula = "poop"
-        button = tk.Button(self, text="<- Back",
-                           command=lambda: controller.show_frame("StartPage", ""))
-        button.pack()
+        button = tk.Button(self, text="<- Back", command=lambda: controller.show_frame("StartPage", ""))
+        button.grid(row = 0, column = 0)
         self.label = tk.Label(self, text = formula, font=controller.title_font)
-        self.label.pack(side="top", fill="x", pady=10)
+        self.label.grid(row = 0, column = 1, columnspan = 3, rowspan = 2)
+        self.targetPrice = tk.Label(self, text = "Target Price: N/a")
+        self.targetPrice.grid(row = 0, column = 4)
+        self.currentPrice = tk.Label(self, text = "Current Price: N/a")
+        self.currentPrice.grid(row = 1, column = 4)
+        self.rawNumLabel = tk.Label(self, text= "Solvent")
+        self.rawNumLabel.grid(row=2, column = 0)
+        self.rawNumLabel = tk.Label(self, text= "Raw Material Number")
+        self.rawNumLabel.grid(row=2, column = 1)
+        self.ingredLabel = tk.Label(self, text= "Ingredient")
+        self.ingredLabel.grid(row=2, column = 2)
+        self.pplbLabel = tk.Label(self, text= "$/lb.")
+        self.pplbLabel.grid(row=2, column = 3)
+        self.concentrationLabel = tk.Label(self, text= "Concentration")
+        self.concentrationLabel.grid(row=2, column = 4)
+        self.concentrationLabel = tk.Label(self, text= "Total Price")
+        self.concentrationLabel.grid(row=2, column = 5)
+        self.currentPrice2 = tk.Label(self, text= "")
+        self.CPriceLabel = tk.Label(self, text= "Total Cost:")
         
+    def clearGrid(self, list_of_widgets):
+        for widget in list_of_widgets:
+            widget.destroy()     
+
+    def AddSolvent(self, solvent: str):
+        if solvent in self.ListOfSolvents: self.ListOfSolvents.remove(solvent)
+        else: self.ListOfSolvents.append(solvent)
+
+    def changeLabel(self, label: Label, rowVal: int, colVal:int):
+        labelText = label.cget("text")
+        print(str(rowVal)+","+str(colVal))
+        self.t = tk.Entry(self) 
+        self.t.insert(END, labelText)
+        self.t.grid(row= rowVal, column = colVal)
+        self.ListOfWidgets.append(self.t)
+
 
     def setFormula(self, formula: str):
+        self.clearGrid(self.ListOfWidgets)
         self.formula = formula
-        print(self.formula)
         self.label.config(text = self.formula)
         if formula == "Create New Formula":
             uf= "Untitled Formula"
             rack = testTubeRack(uf, 0)
             self.label.config(text = uf)
+            self.targetPrice.config(text = "Target Price: ")
+            self.currentPrice.config(text = "Current Price: ")
         else:    
             formulaGenerator = rackMaker()
             ttr= formulaGenerator.createTestTubeRack(formula)
-            # ray = ttr.formula
-            # pricePointLabel = ray[]
+            self.targetPrice.config(text = "Target Price: " + str(ttr.pricePoint))
+            self.currentPrice.config(text = "Current Price: " + str(ttr.getCost()))
+            rowVal = 3
+            for tt in ttr.testTubes:
+                solvName = tt.name
+                self.sol = tk.Checkbutton(self, padx = 20, command = lambda solvName=solvName: self.AddSolvent(solvName))
+                self.sol.grid(row= rowVal, column = 0)
+                self.ListOfWidgets.append(self.sol)
+
+                self.z = tk.Label(self, text = tt.rawMaterialNumber) 
+                self.z.grid(row= rowVal, column = 1)
+                self.ListOfWidgets.append(self.z)
+                self.z.bind("<Button-1>",lambda e, z=self.z, rowVal = rowVal:self.changeLabel(z, rowVal, 1))
+
+                self.x = tk.Label(self, text = solvName) 
+                self.x.grid(row= rowVal, column = 2)
+                self.ListOfWidgets.append(self.x)
+                self.x.bind("<Button-1>",lambda e, x=self.x, rowVal = rowVal:self.changeLabel(x, rowVal, 2))
+                
+                self.y = tk.Label(self, text = tt.pricePerPound) 
+                self.y.grid(row= rowVal, column = 3)
+                self.ListOfWidgets.append(self.y)
+                self.y.bind("<Button-1>",lambda e, y=self.y, rowVal = rowVal:self.changeLabel(y, rowVal, 3))
+
+                self.t = tk.Entry(self) 
+                self.t.insert(END, tt.concentration)
+                self.t.grid(row= rowVal, column = 4)
+                self.ListOfWidgets.append(self.t)
+
+                self.m = tk.Entry(self) 
+                self.m.insert(END, tt.getCost())
+                self.m.grid(row= rowVal, column = 5)
+                self.ListOfWidgets.append(self.m)
+
+                rowVal += 1
+               
 
 
     
-        
-
 
 if __name__ == "__main__":
     app = SampleApp()

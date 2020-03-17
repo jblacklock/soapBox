@@ -356,7 +356,7 @@ class rackMaker:
             print(str(value[4])+"*"+str(value[5]))
             targetValue += value[4] * value[5]
             allTestubes.append(value)
-
+        targetValue = targetValue/100
         ttr = testTubeRack(formulaName, targetValue)
 
         for tt in allTestubes:
