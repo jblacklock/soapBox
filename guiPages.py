@@ -72,6 +72,7 @@ class PageOne(tk.Frame):
         self.ListOfWidgets = []
         self.ListOfSolvents = []
         self.ListOfVari = []
+        self.ttr = None
         tk.Frame.__init__(self, parent)
         self.controller = controller
         formula = "poop"
@@ -119,6 +120,7 @@ class PageOne(tk.Frame):
 
     def changeLabel(self, label: Label, rowVal: int, colVal:int):
         labelText = label.cget("text")
+        label.destroy()
         print(str(rowVal)+","+str(colVal))
         self.t = tk.Entry(self) 
         self.t.insert(END, labelText)
@@ -127,12 +129,28 @@ class PageOne(tk.Frame):
         self.ListOfWidgets.append(self.t)
 
     def ReturnToLabel(self, labelContent: str, rowVal: int, colVal: int, entry: Entry):
+        # if rowVal == 0 and colVal == 5:
+        #     self.AlterPricePointValue(labelContent, rowVal, colVal, entry)
+        #     return
         entry.destroy()
         print(labelContent)
         self.n = tk.Label(self, text = labelContent) 
         self.n.grid(row= rowVal, column = colVal)
         self.ListOfWidgets.append(self.n)
         self.n.bind("<Button-1>",lambda e, n=self.n, rowVal = rowVal, colVal = colVal:self.changeLabel(n, rowVal, colVal))
+
+    
+    # def AlterPricePointValue(self, labelContent: str, rowVal: int, colVal: int, entry: Entry):
+    #     entry.destroy()
+    #     print(labelContent)
+    #     self.targetPriceValue = tk.Label(self, text = labelContent) 
+    #     self.targetPriceValue.grid(row= rowVal, column = colVal)
+    #     self.ListOfWidgets.append(self.targetPriceValue)
+    #     self.targetPriceValue.bind("<Button-1>",lambda e, targetPriceValue=self.targetPriceValue, rowVal = rowVal, colVal = colVal:self.changeLabel(targetPriceValue, rowVal, colVal))
+    #     try:
+    #         self.ttr.changePricePoint(float(labelContent))
+    #     except ValueError:
+    #         self.targetPriceValue.config(text = self.ttr.pricePoint)
 
     def setFormula(self, formula: str):
         self.clearGrid(self.ListOfWidgets)
@@ -142,9 +160,12 @@ class PageOne(tk.Frame):
             uf= "Untitled Formula"
             rack = testTubeRack(uf, 0)
             self.label.config(text = uf)
+            self.ttr = rack
         else:    
             formulaGenerator = rackMaker()
             ttr= formulaGenerator.createTestTubeRack(formula)
+            self.ttr = ttr
+            print("tada! "+str(ttr.pricePoint))
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
             rowVal = 3

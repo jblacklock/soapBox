@@ -151,6 +151,11 @@ class testTubeRack:
         
 # change the target price of the rack
     def changePricePoint(self, amount: float) -> bool:
+        res = isinstance(amount, str) 
+        print(res)
+        if res == True:
+            print("sorry pal, "+amount+" is not going to fly")
+            return False
         if amount < 0: # check bounds
             return False
         self.pricePoint = amount # reset the pricepoint to the input amount    
