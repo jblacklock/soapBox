@@ -37,7 +37,7 @@ class SampleApp(tk.Tk):
         '''Show a frame for the given page name'''
         frame = self.frames[page_name]
         if page_name == "PageOne":
-            print("it happened")
+            # print("it happened")
             self.frames[page_name].setFormula(formula)
         frame.tkraise()
 
@@ -55,7 +55,7 @@ class StartPage(tk.Frame):
         t = 1
         y = 0
         for x in xcelFiles:
-            print(x)
+            # print(x)
             tk.Button(self, text = x, width = (100//6), height = 3, fg="white", bg ="teal", command=lambda x=x: controller.show_frame("PageOne", x)).grid(row = t, column = y)
             # command=lambda name=name: self.a(name)
             y += 1
@@ -113,46 +113,103 @@ class PageOne(tk.Frame):
     def AddVari(self, vari: str):
         if vari in self.ListOfVari: self.ListOfVari.remove(vari)
         else: self.ListOfVari.append(vari)
+        # print(*self.ListOfVari, sep = "\n")
 
     def AddSolvent(self, solvent: str):
         if solvent in self.ListOfSolvents: self.ListOfSolvents.remove(solvent)
         else: self.ListOfSolvents.append(solvent)
+        # print(*self.ListOfSolvents, sep = "\n")
 
     def changeLabel(self, label: Label, rowVal: int, colVal:int):
         labelText = label.cget("text")
-        label.destroy()
-        print(str(rowVal)+","+str(colVal))
+        if rowVal != 0 and colVal != 5: 
+            label.destroy()
+        #print(str(rowVal)+","+str(colVal))
         self.t = tk.Entry(self) 
         self.t.insert(END, labelText)
         self.t.grid(row= rowVal, column = colVal)
-        self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal, t=self.t:self.ReturnToLabel(self.t.get(), rowVal, colVal, t))
+        if colVal ==3:
+            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "name"))
+        elif colVal ==2:
+            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "rawMaterialNumber"))
+        elif colVal ==4:
+            ingred = self.grid_slaves(row = rowVal, column = 3)[0]
+            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, ingred['text'], "pricePerLB"))
+        else:
+            self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal, t=self.t:self.ReturnToLabel(self.t.get(), rowVal, colVal, t))
         self.ListOfWidgets.append(self.t)
 
+    def changeIngredientNameThenReturnToLabel(self, newIngredientName : str, rowVal: int, colVal: int, t: Entry, labelText: str, contentType: str):
+        didItWork = self.changeIngredientName(newIngredientName, labelText, contentType)
+        if didItWork == True:
+            self.ReturnToLabel(newIngredientName, rowVal, colVal, t)
+
+    def changeIngredientName(self, newIngredientName: str, oldIngredientName: str, contentType: str) -> bool:
+        #print("new label: "+newIngredientName)  
+        #print("old label: "+oldIngredientName+"<--")  
+        if contentType == "name":
+            for i in range(0,len(self.ttr.testTubes)):
+                if self.ttr.testTubes[i].name == oldIngredientName:
+                    self.ttr.testTubes[i].name = newIngredientName 
+                    return True 
+        elif contentType == "rawMaterialNumber":
+            for i in range(0,len(self.ttr.testTubes)):
+                if self.ttr.testTubes[i].rawMaterialNumber == oldIngredientName: 
+                    self.ttr.testTubes[i].rawMaterialNumber = newIngredientName 
+                    return True
+        elif contentType == "pricePerLB":
+            # don't forget to update the total cost of the formula and the total cost of the various ingredients
+            # self.updateIngredientCosts()
+            # self.updateTotalCost()
+            # which should be it's own method
+            try:
+                float(newIngredientName)
+            except ValueError:
+                return False
+            for i in range(0,len(self.ttr.testTubes)):
+                if self.ttr.testTubes[i].name == oldIngredientName: 
+                    self.ttr.testTubes[i].pricePerPound = newIngredientName 
+                    return True
+                # print(self.ttr.testTubes[i].pricePerPound)
+            #print("END")
+        return False
+
     def ReturnToLabel(self, labelContent: str, rowVal: int, colVal: int, entry: Entry):
-        # if rowVal == 0 and colVal == 5:
-        #     self.AlterPricePointValue(labelContent, rowVal, colVal, entry)
-        #     return
+        if rowVal == 0 and colVal == 5:
+            self.AlterPricePointValue(labelContent, rowVal, colVal, entry)
+            return
         entry.destroy()
-        print(labelContent)
+        #print(labelContent)
         self.n = tk.Label(self, text = labelContent) 
         self.n.grid(row= rowVal, column = colVal)
         self.ListOfWidgets.append(self.n)
         self.n.bind("<Button-1>",lambda e, n=self.n, rowVal = rowVal, colVal = colVal:self.changeLabel(n, rowVal, colVal))
 
     
-    # def AlterPricePointValue(self, labelContent: str, rowVal: int, colVal: int, entry: Entry):
-    #     entry.destroy()
-    #     print(labelContent)
-    #     self.targetPriceValue = tk.Label(self, text = labelContent) 
-    #     self.targetPriceValue.grid(row= rowVal, column = colVal)
-    #     self.ListOfWidgets.append(self.targetPriceValue)
-    #     self.targetPriceValue.bind("<Button-1>",lambda e, targetPriceValue=self.targetPriceValue, rowVal = rowVal, colVal = colVal:self.changeLabel(targetPriceValue, rowVal, colVal))
-    #     try:
-    #         self.ttr.changePricePoint(float(labelContent))
-    #     except ValueError:
-    #         self.targetPriceValue.config(text = self.ttr.pricePoint)
+    def AlterPricePointValue(self, labelContent: str, rowVal: int, colVal: int, entry: Entry):
+        entry.destroy()
+        self.targetPriceValue.config(text = labelContent)
+        try:
+            self.ttr.changePricePoint(float(labelContent))
+        except ValueError:
+            self.targetPriceValue.config(text = self.ttr.pricePoint)
+        print("New Price Point: "+str(self.ttr.pricePoint))
+
+    def DeleteIngredient(self, rowVal: int, ingredientName: str):
+        for i in range(0,len(self.ttr.testTubes)):
+                if self.ttr.testTubes[i].name == ingredientName: 
+                    del self.ttr.testTubes[i]
+                    break
+        for l in range(0,len(self.ttr.testTubes)):
+            print(self.ttr.testTubes[l].name)
+        print("END formula")
+        for j in range(0,9):
+            self.grid_slaves(row = rowVal, column = j)[0].grid_remove()
+
 
     def setFormula(self, formula: str):
+        self.ListOfSolvents.clear()
+        self.ListOfVari.clear()
         self.clearGrid(self.ListOfWidgets)
         self.formula = formula
         self.label.config(text = self.formula)
@@ -165,7 +222,6 @@ class PageOne(tk.Frame):
             formulaGenerator = rackMaker()
             ttr= formulaGenerator.createTestTubeRack(formula)
             self.ttr = ttr
-            print("tada! "+str(ttr.pricePoint))
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
             rowVal = 3
@@ -204,6 +260,15 @@ class PageOne(tk.Frame):
                 self.m.insert(END, tt.getCost())
                 self.m.grid(row= rowVal, column = 6)
                 self.ListOfWidgets.append(self.m)
+                
+                self.q = tk.Button(self, text = "Fill") 
+                self.q.grid(row= rowVal, column = 7)
+                self.ListOfWidgets.append(self.q)
+                
+                self.r = tk.Button(self, text = "Delete", command = lambda rowVal = rowVal, solvName=solvName: self.DeleteIngredient(rowVal, solvName)) 
+                # button = tk.Button(self, text="<- Back", command=lambda: controller.show_frame("StartPage", ""))
+                self.r.grid(row= rowVal, column = 8)
+                self.ListOfWidgets.append(self.r)
 
                 rowVal += 1
                
