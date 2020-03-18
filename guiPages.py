@@ -169,7 +169,9 @@ class PageOne(tk.Frame):
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].name == oldIngredientName: 
                     self.ttr.testTubes[i].pricePerPound = newIngredientName 
+                    # self.updateCurrentPrice()
                     return True
+            
                 # print(self.ttr.testTubes[i].pricePerPound)
             #print("END")
         return False
@@ -205,7 +207,10 @@ class PageOne(tk.Frame):
         print("END formula")
         for j in range(0,9):
             self.grid_slaves(row = rowVal, column = j)[0].grid_remove()
+        self.updateCurrentPrice()
 
+    def updateCurrentPrice(self):
+        self.currentPriceValue.config(text = str(self.ttr.getCost()))
 
     def setFormula(self, formula: str):
         self.ListOfSolvents.clear()
