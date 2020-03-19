@@ -128,15 +128,16 @@ class PageOne(tk.Frame):
         self.t = tk.Entry(self) 
         self.t.insert(END, labelText)
         self.t.grid(row= rowVal, column = colVal)
-        if colVal ==3:
-            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "name"))
-        elif colVal ==2:
-            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "rawMaterialNumber"))
-        elif colVal ==4:
-            ingred = self.grid_slaves(row = rowVal, column = 3)[0]
-            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, ingred['text'], "pricePerLB"))
-        else:
-            self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal, t=self.t:self.ReturnToLabel(self.t.get(), rowVal, colVal, t))
+        # if colVal ==3:
+        #     self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "name"))
+        # elif colVal ==2:
+        #     self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "rawMaterialNumber"))
+        # elif colVal ==4:
+        #     ingred = self.grid_slaves(row = rowVal, column = 3)[0]
+        #     self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, ingred['text'], "pricePerLB"))
+        # else:
+        #     self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal, t=self.t:self.ReturnToLabel(self.t.get(), rowVal, colVal, t))
+        # self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal, t=self.t:self.ReturnToLabel(self.t.get(), rowVal, colVal, t))
         self.ListOfWidgets.append(self.t)
 
     def changeIngredientNameThenReturnToLabel(self, newIngredientName : str, rowVal: int, colVal: int, t: Entry, labelText: str, contentType: str):
