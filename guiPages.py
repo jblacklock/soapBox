@@ -172,7 +172,12 @@ class PageOne(tk.Frame):
         return False
 
     def updateIngredientCost(self, rowVal: int):
-        print("This method is unfinished")
+        ingredientName = self.grid_slaves(row= rowVal, column=3)[0].cget("text")
+        for i in range(0,len(self.ttr.testTubes)):
+            if self.ttr.testTubes[i].name == ingredientName: 
+                newIngredientCost = self.ttr.testTubes[i].getCost()
+        self.grid_slaves(row= rowVal, column=6)[0].delete(0, END)
+        self.grid_slaves(row= rowVal, column=6)[0].insert(END, newIngredientCost)
 
 
     def ReturnToLabel(self, rowVal: int, colVal: int):
