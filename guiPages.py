@@ -1,5 +1,5 @@
-import tkinter as tk                # python 3
-from tkinter import font  as tkfont # python 3
+import tkinter as tk                
+from tkinter import font  as tkfont 
 from tkinter import *
 from soap import rackMaker, testTubeRack, testTube
 
@@ -37,7 +37,6 @@ class SampleApp(tk.Tk):
         '''Show a frame for the given page name'''
         frame = self.frames[page_name]
         if page_name == "PageOne":
-            # print("it happened")
             self.frames[page_name].setFormula(formula)
         frame.tkraise()
 
@@ -55,9 +54,7 @@ class StartPage(tk.Frame):
         t = 1
         y = 0
         for x in xcelFiles:
-            # print(x)
             tk.Button(self, text = x, width = (100//6), height = 3, fg="white", bg ="teal", command=lambda x=x: controller.show_frame("PageOne", x)).grid(row = t, column = y)
-            # command=lambda name=name: self.a(name)
             y += 1
             if y == 6:
                 y = 0
@@ -121,82 +118,86 @@ class PageOne(tk.Frame):
         # print(*self.ListOfSolvents, sep = "\n")
 
     def changeLabel(self, label: Label, rowVal: int, colVal:int):
+        pricePointRow = 0
+        pricePointColumn = 5 
         labelText = label.cget("text")
-        if rowVal != 0 and colVal != 5: 
+        if rowVal != pricePointRow and colVal != pricePointColumn:
             label.destroy()
-        #print(str(rowVal)+","+str(colVal))
         self.t = tk.Entry(self) 
         self.t.insert(END, labelText)
         self.t.grid(row= rowVal, column = colVal)
-        # if colVal ==3:
-        #     self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "name"))
-        # elif colVal ==2:
-        #     self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, labelText, "rawMaterialNumber"))
-        # elif colVal ==4:
-        #     ingred = self.grid_slaves(row = rowVal, column = 3)[0]
-        #     self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal, t=self.t:self.changeIngredientNameThenReturnToLabel(self.t.get(), rowVal, colVal, t, ingred['text'], "pricePerLB"))
-        # else:
-        #     self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal, t=self.t:self.ReturnToLabel(self.t.get(), rowVal, colVal, t))
-        # self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal, t=self.t:self.ReturnToLabel(self.t.get(), rowVal, colVal, t))
+        if rowVal == pricePointRow and colVal == pricePointColumn:
+            self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal: self.AlterPricePointValue(rowVal, colVal))
+        elif colVal ==3:
+            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal: self.changeIngredientNameThenReturnToLabel(rowVal, colVal, labelText, "name"))
+        elif colVal ==2:
+            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal: self.changeIngredientNameThenReturnToLabel(rowVal, colVal, labelText, "rawMaterialNumber"))
+        elif colVal ==4:
+            ingred = self.grid_slaves(row = rowVal, column = 3)[0]
+            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal: self.changeIngredientNameThenReturnToLabel(rowVal, colVal, ingred['text'], "pricePerLB"))
+        else: self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal: self.ReturnToLabel(rowVal, colVal))
         self.ListOfWidgets.append(self.t)
 
-    def changeIngredientNameThenReturnToLabel(self, newIngredientName : str, rowVal: int, colVal: int, t: Entry, labelText: str, contentType: str):
-        didItWork = self.changeIngredientName(newIngredientName, labelText, contentType)
+    def changeIngredientNameThenReturnToLabel(self, rowVal: int, colVal: int, labelText: str, contentType: str):
+        didItWork = self.changeIngredientName(labelText, contentType, rowVal, colVal)
         if didItWork == True:
-            self.ReturnToLabel(newIngredientName, rowVal, colVal, t)
+            self.ReturnToLabel(rowVal, colVal)
 
-    def changeIngredientName(self, newIngredientName: str, oldIngredientName: str, contentType: str) -> bool:
-        #print("new label: "+newIngredientName)  
-        #print("old label: "+oldIngredientName+"<--")  
+    def changeIngredientName(self, oldIngredientName: str, contentType: str, rowVal: int, colVal: int) -> bool:
+        newIngredientName = self.grid_slaves(row = rowVal, column = colVal)[0].get()
         if contentType == "name":
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].name == oldIngredientName:
                     self.ttr.testTubes[i].name = newIngredientName 
+                    print("This is the new name of the ingredient: "+self.ttr.testTubes[i].name)
                     return True 
         elif contentType == "rawMaterialNumber":
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].rawMaterialNumber == oldIngredientName: 
                     self.ttr.testTubes[i].rawMaterialNumber = newIngredientName 
+                    print("This is the new rmn of the ingredient: "+self.ttr.testTubes[i].rawMaterialNumber)
                     return True
         elif contentType == "pricePerLB":
-            # don't forget to update the total cost of the formula and the total cost of the various ingredients
-            # self.updateIngredientCosts()
-            # self.updateTotalCost()
-            # which should be it's own method
             try:
                 float(newIngredientName)
             except ValueError:
                 return False
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].name == oldIngredientName: 
-                    self.ttr.testTubes[i].pricePerPound = newIngredientName 
-                    # self.updateCurrentPrice()
+                    self.ttr.testTubes[i].pricePerPound = float(newIngredientName) 
+                    print("This is the new $/lb. of the ingredient: "+str(self.ttr.testTubes[i].pricePerPound))
+                    self.updateCurrentPrice()
+                    self.updateIngredientCosts(rowVal)
                     return True
-            
-                # print(self.ttr.testTubes[i].pricePerPound)
-            #print("END")
         return False
 
-    def ReturnToLabel(self, labelContent: str, rowVal: int, colVal: int, entry: Entry):
-        if rowVal == 0 and colVal == 5:
-            self.AlterPricePointValue(labelContent, rowVal, colVal, entry)
-            return
-        entry.destroy()
-        #print(labelContent)
+    def updateIngredientCost(rowVal: int):
+        print("This method is unfinished")
+
+
+    def ReturnToLabel(self, rowVal: int, colVal: int):
+        entryToRemove = self.grid_slaves(row = rowVal, column = colVal)[0]
+        labelContent = entryToRemove.get()
+        print("this is the labelContent: "+labelContent)
+        entryToRemove.destroy()
         self.n = tk.Label(self, text = labelContent) 
         self.n.grid(row= rowVal, column = colVal)
         self.ListOfWidgets.append(self.n)
         self.n.bind("<Button-1>",lambda e, n=self.n, rowVal = rowVal, colVal = colVal:self.changeLabel(n, rowVal, colVal))
 
     
-    def AlterPricePointValue(self, labelContent: str, rowVal: int, colVal: int, entry: Entry):
-        entry.destroy()
-        self.targetPriceValue.config(text = labelContent)
+    def AlterPricePointValue(self, rowVal: int, colVal: int):
+        latestEntry = self.grid_slaves(row = rowVal, column = colVal)[0]
+        newPricePoint = latestEntry.get()
+        latestEntry.destroy()
+        self.targetPriceValue.config(text = newPricePoint)
         try:
-            self.ttr.changePricePoint(float(labelContent))
+            self.ttr.changePricePoint(float(newPricePoint))
         except ValueError:
-            self.targetPriceValue.config(text = self.ttr.pricePoint)
-        print("New Price Point: "+str(self.ttr.pricePoint))
+            self.targetPriceValue.config(text = str(self.ttr.pricePoint))
+        print("The pricepoint is: "+str(self.ttr.pricePoint))
+
+
 
     def DeleteIngredient(self, rowVal: int, ingredientName: str):
         for i in range(0,len(self.ttr.testTubes)):
@@ -272,7 +273,6 @@ class PageOne(tk.Frame):
                 self.ListOfWidgets.append(self.q)
                 
                 self.r = tk.Button(self, text = "Delete", command = lambda rowVal = rowVal, solvName=solvName: self.DeleteIngredient(rowVal, solvName)) 
-                # button = tk.Button(self, text="<- Back", command=lambda: controller.show_frame("StartPage", ""))
                 self.r.grid(row= rowVal, column = 8)
                 self.ListOfWidgets.append(self.r)
 
