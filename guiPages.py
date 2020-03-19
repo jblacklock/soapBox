@@ -167,11 +167,11 @@ class PageOne(tk.Frame):
                     self.ttr.testTubes[i].pricePerPound = float(newIngredientName) 
                     print("This is the new $/lb. of the ingredient: "+str(self.ttr.testTubes[i].pricePerPound))
                     self.updateCurrentPrice()
-                    self.updateIngredientCosts(rowVal)
+                    self.updateIngredientCost(rowVal)
                     return True
         return False
 
-    def updateIngredientCost(rowVal: int):
+    def updateIngredientCost(self, rowVal: int):
         print("This method is unfinished")
 
 
