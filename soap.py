@@ -4,6 +4,7 @@ import xlsxwriter
 import pandas as pd
 import xlrd
 import glob, os
+import subprocess as sp
 
 class testTube:
 
@@ -42,6 +43,21 @@ class testTube:
         self.concentration -= amount # decrease the concentration of the chemical by the amount
         return True # return true, is returning a bool even necessary in this method?
 
+    def alterByConcentration(self, newConc: float) -> bool:
+        difference = self.concentration - newConc
+        if difference < 0:
+            self.addByConcentration(difference * -1)
+        if difference > 0:
+            self.reduceByConcentration(difference)
+
+    def alterByPrice(self, newPrice: float) -> bool:
+        difference = self.getCost() - newPrice
+        if difference < 0:
+            self.addByConcentration(difference * -1)
+        if difference > 0:
+            self.reduceByConcentration(difference)
+
+
 # Set the concentration of the tube by replacing with amount
     def setCapacity(self, amount: float) -> bool:
         if amount > self.maxConcentration or amount < 0: # checking input bounds, this is using the max concentration attribute, but it could just be 100
@@ -72,6 +88,7 @@ class testTube:
         return True
 
 # if the concentration was filled relative to the $amount, what would the concentration be?
+# TODO Handle $0 Price Per Pound divide by zero
     def concentrationIfFillToPrice(self, amount: float) -> float:
         newcost = self.getCost() + amount # calculate the new cost based on the current cost and input amount
         increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration
@@ -97,7 +114,6 @@ class testTubeRack:
         self.pricePoint = pricePoint # set the pricepoint argument
         self.testTubes = [] # add the testtube to the rack of tubes
         self.name = name # associate the name in the rack
-        self.currentPrice = 0 # initialize the currentPrice of the rack, current price will be adjusted later? i think 
 
 # name of the testTubeRack
     def __repr__(self) -> str:
@@ -254,7 +270,7 @@ class testTubeRack:
     def fillToConcentration(self, increaseableIngredients: List[str]) -> None:
         increaseConcentrationBy = self.unusedRackConcentration()
         if self.unusedRackConcentration() > 0: # check to make sure inputs are in bounds
-            for i in range(0,len(self.testTubes)):
+             for i in range(0,len(self.testTubes)):
                 if self.testTubes[i].name in increaseableIngredients: # find reduceable ingredients in the rack
                     self.testTubes[i].addByConcentration(increaseConcentrationBy / len(increaseableIngredients)) # increase ingredients evenly by available concentration/number of increaseable ingredients
 
@@ -292,7 +308,21 @@ class testTubeRack:
                     self.testTubes[i].addByConcentration(amount - self.testTubes[i].concentration) # if < 100 change the concentration to the desired setpoint
                     break
 
+    def alterRackTubeConcentration(self, ingredient: str, amount: float) -> None:
+        for i in range(0, len(self.testTubes)):
+            if self.testTubes[i].name in ingredient:
+                if self.testTubes[i].concentration > amount:
+                    self.decreaseRackTubeToConcentration(ingredient, amount)
+                else:
+                    self.increaseRackTubeToConcentration(ingredient, amount)
 
+    def alterRackTubePrice(self, ingredient: str, amount: float) -> None:
+        for i in range(0, len(self.testTubes)):
+            if self.testTubes[i].name in ingredient:
+                if self.testTubes[i].price > amount:
+                    self.decreaseRackTubeToPrice(ingredient, amount)
+                else:
+                    self.increaseRackTubeToPrice(ingredient, amount)
 
 
 # Example: Current Tube Cost = $10, amount = $4, reduce concentration by $6
@@ -330,9 +360,18 @@ class testTubeRack:
 
 
 
-    def increaseSolventWhenFillToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
+    def increaseSolventWhenReduceToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
+        self.emptyTubes(solvents)
         self.reduceToPrice(ingredientsToChange)
         self.fillToConcentration(solvents)
+        if self.getCost() > self.pricePoint:
+            self.emptyTubes(solvents)
+        if self.getCost() < self.pricePoint:
+            self.fillToPrice(solvents)
+
+
+
+
 
 # TODO: Change concentrations, reduce and increase tube concentrations relative to another and price
 # TODO: repr should be the name of the thing we are trying to make and the ingredients we are using @ their concentratinos
@@ -363,24 +402,28 @@ class rackMaker:
             allTestubes.append(value)
         targetValue = targetValue/100
         ttr = testTubeRack(formulaName, targetValue)
-
         for tt in allTestubes:
             ttr.createRackTube(tt[1], tt[2], tt[5], tt[4])
-
         return ttr
 
 
-
     def getNamesOfExcelFiles(self) -> List[str]: 
-
         dirPath = os.path.dirname(__file__)    
         os.chdir(dirPath+"/Formulas")
         fileNames = []
-        
         for file in glob.glob("*.xlsx"):
             file = file[:-5]
             fileNames.append(file)
         return fileNames
+
+
+    def openExcelFile(self, fileName : str) -> None:
+        # TODO: call save before opening the porgram
+        dirPath = os.path.dirname(__file__)  
+        fileName = fileName+".xlsx"
+        truePath = dirPath+"\\Formulas\\"+fileName
+        print(truePath)
+        os.startfile(truePath)
             
 
     
