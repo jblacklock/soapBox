@@ -173,15 +173,16 @@ class PageOne(tk.Frame):
         # TODO: deal with file saving weirdness
         # row 0 column 1
         labelText = self.label.cget("text")
-        self.label.destroy()
         title_font = tkfont.Font(family='Helvetica', size=30, weight="bold", slant="italic")
-        self.label = tk.Entry(self, font = title_font, width = 15) 
-        self.label.insert(END, labelText)
-        self.label.grid(row= 0, column = 1, columnspan = 3)
-        self.label.bind("<Return>", lambda e: self.returnFormulaLabel())
+        self.entry = tk.Entry(self, font = title_font, width = 15) 
+        self.entry.insert(END, labelText)
+        self.entry.grid(row= 0, column = 1, columnspan = 3)
+        self.entry.bind("<Return>", lambda e: self.returnFormulaLabel())
+        
 
     def returnFormulaLabel(self):
         # TODO: deal with file saving weirdness
+        self.label.destroy()
         rowVal = 0
         colVal = 1
         entryToRemove = self.grid_slaves(row = rowVal, column = colVal)[0]
@@ -294,7 +295,7 @@ class PageOne(tk.Frame):
 
             self.t = tk.Entry(self) 
             self.t.insert(END, 0)
-            # self.t.bind("<Return>", lambda e, rowVal = rowVal: self.alterIngredientConcentration(rowVal))
+            self.t.bind("<Return>", lambda e, rowVal = rowVal: self.alterIngredientConcentration(rowVal))
             self.t.grid(row= rowVal, column = 5)
             self.ListOfWidgets.append(self.t)
 
@@ -457,6 +458,12 @@ class PageOne(tk.Frame):
         self.grid_slaves(row = 3, column = 0)[0].destroy()
         self.grid_slaves(row = 3, column = 5)[0].destroy()
 
+    # def saveFormula(self):
+        # get the current name of the formula
+        # get the name of the file which currently exists
+        # destroy the file that currently exists
+        # write the new file
+
     def setFormula(self, formula: str):
         self.grid_slaves(row = 0, column = 1)
         self.ListOfSolvents.clear()
@@ -480,10 +487,15 @@ class PageOne(tk.Frame):
         else:    
             self.formulaGenerator = rackMaker()
             ttr= self.formulaGenerator.createTestTubeRack(formula)
+            self.currentFileName = formula
             self.ttr = ttr
             self.create_charts()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
+
+            self.u = tk.Button(self, text = "Save File", command = lambda: self.saveFormula()) 
+            self.u.grid(row= 0, column = 7)
+            self.ListOfWidgets.append(self.u)
 
             self.j = tk.Button(self, text = "Open File", command = lambda formulaName = self.ttr.name: self.formulaGenerator.openExcelFile(formulaName)) 
             self.j.grid(row= 1, column = 7)

@@ -319,7 +319,7 @@ class testTubeRack:
     def alterRackTubePrice(self, ingredient: str, amount: float) -> None:
         for i in range(0, len(self.testTubes)):
             if self.testTubes[i].name in ingredient:
-                if self.testTubes[i].price > amount:
+                if self.testTubes[i].getCost() > amount:
                     self.decreaseRackTubeToPrice(ingredient, amount)
                 else:
                     self.increaseRackTubeToPrice(ingredient, amount)
