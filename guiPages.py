@@ -1,3 +1,6 @@
+# TODO fill did not fill
+# TODO concentration did not match the concentration pie chart
+
 import tkinter as tk                
 from tkinter import font  as tkfont 
 from tkinter import *
@@ -69,6 +72,7 @@ class StartPage(tk.Frame):
 class PageOne(tk.Frame):
 
     def __init__(self, parent, controller):
+        self.backgroundColor = "#f0f0f0"
         self.pie1 = None
         self.pie2 = None
         self.ListOfWidgets = []
@@ -124,29 +128,24 @@ class PageOne(tk.Frame):
     def fillVariToConcentration(self):
         self.ttr.fillToConcentration(self.ListOfVari)
         self.updateCurrentPrice()
-        print("done")
 
     # the backend logic for this is shit
     def reduceToPrice(self):
         self.ttr.increaseSolventWhenReduceToPricePoint(self.ListOfSolvents ,self.ListOfVari)
         self.updateCurrentPrice()
-        print("done")
 
     def fillVariToPrice(self):
         self.ttr.reduceSolventWhenFillToPricePoint(self.ListOfSolvents ,self.ListOfVari)
         self.updateCurrentPrice()
-        print("done")
         
 
     def AddVari(self, vari: str):
         if vari in self.ListOfVari: self.ListOfVari.remove(vari)
-        else: self.ListOfVari.append(vari)
-        print(*self.ListOfVari, sep = "\n")
+        else: self.ListOfVari.append(vari) 
 
     def AddSolvent(self, solvent: str):
         if solvent in self.ListOfSolvents: self.ListOfSolvents.remove(solvent)
         else: self.ListOfSolvents.append(solvent)
-        print(*self.ListOfSolvents, sep = "\n")
 
     def changeLabel(self, label: Label, rowVal: int, colVal:int):
         pricePointRow = 0
@@ -178,21 +177,21 @@ class PageOne(tk.Frame):
         self.entry.insert(END, labelText)
         self.entry.grid(row= 0, column = 1, columnspan = 3)
         self.entry.bind("<Return>", lambda e: self.returnFormulaLabel())
+        self.label.config(fg = self.backgroundColor)
         
 
     def returnFormulaLabel(self):
-        # TODO: deal with file saving weirdness
         self.label.destroy()
         rowVal = 0
         colVal = 1
         entryToRemove = self.grid_slaves(row = rowVal, column = colVal)[0]
         labelContent = entryToRemove.get()
-        print("this is the labelContent: "+labelContent)
         entryToRemove.destroy()
         title_font = tkfont.Font(family='Helvetica', size=30, weight="bold", slant="italic")
         self.label = tk.Label(self, text = labelContent, font=title_font) 
         self.label.grid(row= rowVal, column = colVal, columnspan = 3)
         self.label.bind("<Button-1>",lambda e: self.changeFormulaName())
+        self.ttr.name = labelContent
         
 
 
@@ -207,13 +206,11 @@ class PageOne(tk.Frame):
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].name == oldIngredientName:
                     self.ttr.testTubes[i].name = newIngredientName 
-                    print("This is the new name of the ingredient: "+self.ttr.testTubes[i].name)
                     return True 
         elif contentType == "rawMaterialNumber":
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].rawMaterialNumber == oldIngredientName: 
                     self.ttr.testTubes[i].rawMaterialNumber = newIngredientName 
-                    print("This is the new rmn of the ingredient: "+self.ttr.testTubes[i].rawMaterialNumber)
                     return True
         elif contentType == "pricePerLB":
             try:
@@ -222,8 +219,7 @@ class PageOne(tk.Frame):
                 return False
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].name == oldIngredientName: 
-                    self.ttr.testTubes[i].pricePerPound = float(newIngredientName) 
-                    print("This is the new $/lb. of the ingredient: "+str(self.ttr.testTubes[i].pricePerPound))
+                    self.ttr.testTubes[i].pricePerPound = float(newIngredientName)
                     self.updateCurrentPrice()
                     self.updateIngredientCost(rowVal)
                     return True
@@ -262,7 +258,6 @@ class PageOne(tk.Frame):
         ab = top.grid_slaves(row=1, column = 1)[0].get()
         solvName = top.grid_slaves(row=2, column = 1)[0].get()
         ef = top.grid_slaves(row=3, column = 1)[0].get()
-        print("here they are: "+ab+", "+solvName+", "+ef)
         try:
             float(ef)
         except ValueError:
@@ -314,7 +309,6 @@ class PageOne(tk.Frame):
             self.ListOfWidgets.append(self.r)
 
             self.lastIngredientRow += 1
-        print(*self.ttr.testTubes)                     
 
     def alterIngredientConcentration(self, rowVal):  
         ingredientName = self.grid_slaves(row= rowVal, column = 3)[0]['text']
@@ -328,11 +322,9 @@ class PageOne(tk.Frame):
                     self.grid_slaves(row= rowVal, column = 5)[0].insert(END, self.ttr.testTubes[i].concentration)
                 self.ttr.alterRackTubeConcentration(ingredientName, float(alteredConcentration))
                 self.grid_slaves(row= rowVal, column = 5)[0].delete(0, 'end')
-                print("New cost: "+str(self.ttr.testTubes[i].concentration))
                 self.grid_slaves(row= rowVal, column = 5)[0].insert(END, self.ttr.testTubes[i].concentration)
         self.updateCurrentPrice()
         self.updateIngredientCost(rowVal)
-        print("here")
 
     def alterIngredientPrice(self, rowVal):    
         ingredientName = self.grid_slaves(row= rowVal, column = 3)[0]['text']
@@ -346,18 +338,15 @@ class PageOne(tk.Frame):
                     self.grid_slaves(row= rowVal, column = 6)[0].insert(END, self.ttr.testTubes[i].getCost())
                 self.ttr.alterRackTubePrice(ingredientName,float(alteredConcentration))
                 self.grid_slaves(row= rowVal, column = 6)[0].delete(0, 'end')
-                print("New cost: "+str(self.ttr.testTubes[i].getCost()))
                 self.grid_slaves(row= rowVal, column = 6)[0].insert(END, self.ttr.testTubes[i].getCost())
         self.updateCurrentPrice()
         self.updateIngredientConcentration(rowVal)
-        print("here")
               
 
 
     def ReturnToLabel(self, rowVal: int, colVal: int):
         entryToRemove = self.grid_slaves(row = rowVal, column = colVal)[0]
         labelContent = entryToRemove.get()
-        print("this is the labelContent: "+labelContent)
         entryToRemove.destroy()
         self.n = tk.Label(self, text = labelContent) 
         self.n.grid(row= rowVal, column = colVal)
@@ -374,22 +363,12 @@ class PageOne(tk.Frame):
             self.ttr.changePricePoint(float(newPricePoint))
         except ValueError:
             self.targetPriceValue.config(text = str(self.ttr.pricePoint))
-        print("The pricepoint is: "+str(self.ttr.pricePoint))
-
-    def addIngredient(self, rwm = str, name = str, pplb = str):
-        print("New RWM: "+rwm)
-        print("New Name: "+name)
-        print("New PPLB: "+pplb)
-
 
     def DeleteIngredient(self, rowVal: int, ingredientName: str):
         for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].name == ingredientName: 
                     del self.ttr.testTubes[i]
                     break
-        for l in range(0,len(self.ttr.testTubes)):
-            print(self.ttr.testTubes[l].name)
-        print("END formula")
         for j in range(0,9):
             self.grid_slaves(row = rowVal, column = j)[0].grid_remove()
         self.updateCurrentPrice()
@@ -458,11 +437,26 @@ class PageOne(tk.Frame):
         self.grid_slaves(row = 3, column = 0)[0].destroy()
         self.grid_slaves(row = 3, column = 5)[0].destroy()
 
-    # def saveFormula(self):
+    def saveFormula(self):
         # get the current name of the formula
+        newName = self.label['text']
         # get the name of the file which currently exists
-        # destroy the file that currently exists
-        # write the new file
+        # self.currentFileName 
+        self.formulaGenerator.saveFormula(newName, self.currentFileName, self.ttr)
+        # set current name of formula as the file whcih currently exists
+        self.currentFileName = newName
+
+    def saveAsFormula(self) -> None:
+        # get the current name of the formula
+        newName = self.label['text']
+        # get the name of the file which currently exists
+        # self.currentFileName 
+        self.formulaGenerator.saveAsFormula(newName, self.currentFileName, self.ttr)
+        # set current name of formula as the file whcih currently exists
+        self.currentFileName = newName     
+
+    def deleteFormula(self):
+        print("This function has yet to be implemented")
 
     def setFormula(self, formula: str):
         self.grid_slaves(row = 0, column = 1)
@@ -493,11 +487,19 @@ class PageOne(tk.Frame):
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
 
-            self.u = tk.Button(self, text = "Save File", command = lambda: self.saveFormula()) 
+            self.u = tk.Button(self, text = "Save", command = lambda: self.saveFormula()) 
             self.u.grid(row= 0, column = 7)
             self.ListOfWidgets.append(self.u)
 
-            self.j = tk.Button(self, text = "Open File", command = lambda formulaName = self.ttr.name: self.formulaGenerator.openExcelFile(formulaName)) 
+            self.h = tk.Button(self, text = "Save As", command = lambda: self.saveAsFormula()) 
+            self.h.grid(row= 0, column = 8)
+            self.ListOfWidgets.append(self.h)
+
+            self.h = tk.Button(self, text = "Delete", command = lambda: self.deleteFormula()) 
+            self.h.grid(row= 1, column = 8)
+            self.ListOfWidgets.append(self.h)
+
+            self.j = tk.Button(self, text = "Open", command = lambda formulaName = self.ttr.name: self.formulaGenerator.openExcelFile(formulaName)) 
             self.j.grid(row= 1, column = 7)
             self.ListOfWidgets.append(self.j)
             

@@ -5,6 +5,7 @@ import pandas as pd
 import xlrd
 import glob, os
 import subprocess as sp
+from os import path
 
 class testTube:
 
@@ -70,6 +71,7 @@ class testTube:
         return (self.pricePerPound * self.concentration) / 100 # Calculate and return the cost of the chemical in the mixture, based on concentration and price per pound
 
 # reduce the concentration of the tube by this $amount
+# TODO self.pricePerPound !=0 error handeling looks good?
     def reduceByPrice(self, amount: float) -> bool:
         cost = self.getCost() # get the cost of the chemical using the getCost method
         newcost = cost - amount # calculate the new desired cost based on the amount and current cost
@@ -79,6 +81,7 @@ class testTube:
         return True
 
 # increase the concentration of the tube by this $amount
+# TODO needs self.pricePerPound == 0 error
     def addByPrice(self, amount: float) -> bool:
         newcost = self.getCost() + amount # calculate a new cost based off of the amount and current cost
         increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration based on the newcost
@@ -134,13 +137,14 @@ class testTubeRack:
             pNum = t.rawMaterialNumber
             desc = t.name
             quantity = t.concentration
-            curCost = t.getCost()
+            curCost = t.pricePerPound
             partialArray = [pNum, desc, quantity, curCost]
             finalList.append(partialArray)
         return finalList
 
     def exportFormula(self) -> None:
-        workbook = xlsxwriter.Workbook('Formulas/'+self.name+'.xlsx') 
+        # somehow this is not creating the workbook
+        workbook = xlsxwriter.Workbook(self.name + '.xlsx') 
         worksheet = workbook.add_worksheet(self.name) 
         worksheet.write('B1', 'Part Number') 
         worksheet.write('C1', 'Description') 
@@ -167,10 +171,8 @@ class testTubeRack:
         
 # change the target price of the rack
     def changePricePoint(self, amount: float) -> bool:
-        res = isinstance(amount, str) 
-        print(res)
+        res = isinstance(amount, str)
         if res == True:
-            print("sorry pal, "+amount+" is not going to fly")
             return False
         if amount < 0: # check bounds
             return False
@@ -209,6 +211,7 @@ class testTubeRack:
 # if the cost of the ingredients is greater than the pricepoint, decrease the concentration of each listed ingredient until 
 # the pricpoint is reached. If an ingrdient reaches 0% concentration and the pricepoint is not reached, continue removing 
 # the concentration evenly from the other listed ingredients.
+# TODO if N == 0 break out of this method? - Justification: nothing should change if N == 0
     def reduceToPrice(self, reduceableIngredients: List[str]) -> None:
         reduceCurrentPriceBy = self.getCost() - self.pricePoint # calculate the new desired price of the formula
         if reduceCurrentPriceBy > 0: # make sure input is reasonable and not out of bounds
@@ -251,6 +254,8 @@ class testTubeRack:
 # if the cost of the ingredients is less than the price point, increase the concentration of the listed ingredients
 # until the price point is met. If the total concentration of the rack needs to exceed 100% to reach the price point 
 # equally increase the price of each ingredient until the rack concentration = 100%
+# TODO if len(increaseableIngredeints) == 0 break out of this method
+# TODO concentration increaase != 0 error handeling
     def fillToPrice(self, increaseableIngredients: List[str]) -> None:
         addCurrentPriceBy = self.pricePoint - self.getCost() # calculate the price the formula needs to increase to
         concentrationIncrease = 0 # initialize concentration increase to later check for going out of bounds of the max concentration of the rack
@@ -397,7 +402,6 @@ class rackMaker:
         allTestubes = []
         for x in range(1, i):
             value = sheet.row_values(x)
-            print(str(value[4])+"*"+str(value[5]))
             targetValue += value[4] * value[5]
             allTestubes.append(value)
         targetValue = targetValue/100
@@ -422,9 +426,47 @@ class rackMaker:
         dirPath = os.path.dirname(__file__)  
         fileName = fileName+".xlsx"
         truePath = dirPath+"\\Formulas\\"+fileName
-        print(truePath)
         os.startfile(truePath)
             
-
     
-        
+    def saveFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> None:
+        dirPath = os.path.dirname(__file__)  
+        os.chdir(dirPath + "\\Formulas")
+        if oldFileName != "":
+            # destroy oldFileName
+            os.remove(oldFileName + ".xlsx")
+        # write the new file
+        ttr.name = fileName
+        ttr.exportFormula()
+
+
+    def saveAsFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> None:
+        dirPath = os.path.dirname(__file__)  
+        os.chdir(dirPath + "\\Formulas")
+        # if filename exists  in directory
+        if path.exists(fileName + ".xlsx"):
+            # if the last value of filename is )
+            if fileName[-1] == ")":
+                # if filename has a (
+                if "(" in fileName:
+                    openParenth = fileName.rfind("(")
+                    potentialFileNumber = fileName[openParenth + 1:-1]
+                    # if the content between the open parenthese and close parenthese type(int()) == type(int)
+                    try:
+                        # then int('number') + 1
+                        newInt = int(potentialFileNumber) + 1
+                        # save a new file with newName and int + 1
+                        self.saveFormula(fileName[0:openParenth-1] + " (" + str(newInt) + ")","", ttr)
+                    except:
+                        # save a newFile with the same name but + "(1)"
+                        self.saveFormula(fileName + " (1)", "", ttr)
+                else:
+                    # save a newFile with the same name but + "(1)"
+                    self.saveFormula(fileName + " (1)", "", ttr)
+            else:
+                # save a newFile with the same name but + "(1)"
+                self.saveFormula(fileName + " (1)", "", ttr)
+        else:
+            # save file without destroying the previous one
+            self.saveFormula(fileName, "", ttr)
+    
