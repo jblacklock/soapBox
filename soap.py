@@ -378,12 +378,6 @@ class testTubeRack:
 
 
 
-# TODO: Change concentrations, reduce and increase tube concentrations relative to another and price
-# TODO: repr should be the name of the thing we are trying to make and the ingredients we are using @ their concentratinos
-# TODO: Calculate the amount of water needed to finalize the formula
-# TODO: Create a visual user interface wooooot - Find GUI library for python
-# TODO: be able to delete a testtube from a testtube rack
-
 #######################################################################################################################################################################
 
 class rackMaker:
@@ -420,9 +414,14 @@ class rackMaker:
             fileNames.append(file)
         return fileNames
 
+    def deleteFormula(self, fileToDelete: str):
+        dirPath = os.path.dirname(__file__)  
+        os.chdir(dirPath + "\\Formulas")
+        os.remove(fileToDelete + ".xlsx")
 
-    def openExcelFile(self, fileName : str) -> None:
-        # TODO: call save before opening the porgram
+
+    def openExcelFile(self, fileName: str, oldFileName: str, formula : testTubeRack) -> None:
+        self.saveFormula(fileName, oldFileName, formula)
         dirPath = os.path.dirname(__file__)  
         fileName = fileName+".xlsx"
         truePath = dirPath+"\\Formulas\\"+fileName
@@ -440,7 +439,7 @@ class rackMaker:
         ttr.exportFormula()
 
 
-    def saveAsFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> None:
+    def saveAsFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> str:
         dirPath = os.path.dirname(__file__)  
         os.chdir(dirPath + "\\Formulas")
         # if filename exists  in directory
@@ -455,18 +454,39 @@ class rackMaker:
                     try:
                         # then int('number') + 1
                         newInt = int(potentialFileNumber) + 1
-                        # save a new file with newName and int + 1
-                        self.saveFormula(fileName[0:openParenth-1] + " (" + str(newInt) + ")","", ttr)
+                        # TODO: check to see if that save file already exists:
+                        # if it does, increment up until you can find a file name that hasn't been used yet
+                        newFormulaName = fileName[0:openParenth-1] + " (" + str(newInt) + ")"
+                        self.saveFormula(newFormulaName,"", ttr)
+                        ttr.name = newFormulaName
+                        return newFormulaName
                     except:
                         # save a newFile with the same name but + "(1)"
-                        self.saveFormula(fileName + " (1)", "", ttr)
+                        newFormulaName = fileName + " (1)"
+                        # TODO: check to see if that save file already exists:
+                        # if it does, increment up until you can find a file name that hasn't been used yet
+                        self.saveFormula(newFormulaName, "", ttr)
+                        ttr.name = newFormulaName
+                        return newFormulaName
                 else:
                     # save a newFile with the same name but + "(1)"
-                    self.saveFormula(fileName + " (1)", "", ttr)
+                    newFormulaName = fileName + " (1)"
+                    # TODO: check to see if that save file already exists:
+                    # if it does, increment up until you can find a file name that hasn't been used yet
+                    self.saveFormula(newFormulaName, "", ttr)
+                    ttr.name = newFormulaName
+                    return newFormulaName
             else:
                 # save a newFile with the same name but + "(1)"
-                self.saveFormula(fileName + " (1)", "", ttr)
+                newFormulaName = fileName + " (1)"
+                # TODO: check to see if that save file already exists:
+                # if it does, increment up until you can find a file name that hasn't been used yet
+                self.saveFormula(newFormulaName, "", ttr)
+                ttr.name = newFormulaName
+                return newFormulaName
         else:
             # save file without destroying the previous one
             self.saveFormula(fileName, "", ttr)
+            ttr.name = fileName
+            return fileName
     
