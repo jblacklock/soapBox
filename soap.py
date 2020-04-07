@@ -417,10 +417,14 @@ class rackMaker:
     def deleteFormula(self, fileToDelete: str):
         dirPath = os.path.dirname(__file__)  
         os.chdir(dirPath + "\\Formulas")
-        os.remove(fileToDelete + ".xlsx")
+        try:
+            os.remove(fileToDelete + ".xlsx")
+        except:
+            return
 
 
     def openExcelFile(self, fileName: str, oldFileName: str, formula : testTubeRack) -> None:
+        # does not need alteration for new formula
         self.saveFormula(fileName, oldFileName, formula)
         dirPath = os.path.dirname(__file__)  
         fileName = fileName+".xlsx"
@@ -429,6 +433,8 @@ class rackMaker:
             
     
     def saveFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> None:
+        # for new formula, set "oldFileName" to ""
+        # no alteration needed for new formula
         dirPath = os.path.dirname(__file__)  
         os.chdir(dirPath + "\\Formulas")
         if oldFileName != "":
@@ -440,6 +446,7 @@ class rackMaker:
 
 
     def saveAsFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> str:
+        # no alteration needed for new formula
         dirPath = os.path.dirname(__file__)  
         os.chdir(dirPath + "\\Formulas")
         # if filename exists  in directory

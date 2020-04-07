@@ -630,12 +630,31 @@ class PageOne(tk.Frame):
         self.label.config(text = self.formula)
         self.label.bind("<Button-1>",lambda e: self.changeFormulaName())
 
+        self.u = tk.Button(self, text = "Save", command = lambda: self.saveFormula()) 
+        self.u.grid(row= 0, column = 7)
+        self.ListOfWidgets.append(self.u)
+
+        self.h = tk.Button(self, text = "Save As", command = lambda: self.saveAsFormula()) 
+        self.h.grid(row= 0, column = 8)
+        self.ListOfWidgets.append(self.h)
+
+        self.h = tk.Button(self, text = "Delete", command = lambda: self.deleteFormula()) 
+        self.h.grid(row= 1, column = 8)
+        self.ListOfWidgets.append(self.h)
+
+        self.j = tk.Button(self, text = "Open", command = lambda: self.openFormula()) 
+        self.j.grid(row= 1, column = 7)
+        self.ListOfWidgets.append(self.j)
+        
+        self.formulaGenerator = rackMaker()
+
         if formula == "Create New Formula":
             uf= "Untitled Formula"
             rack = testTubeRack(uf, 0)
             self.label.config(text = uf)
             self.ttr = rack
             self.lastIngredientRow = 6
+            self.currentFileName = ""
             self.targetPriceValue.config(text = "0")
             self.currentPriceValue.config(text = "0")
             if len(self.grid_slaves(row= 3, column = 1)) > 0:
@@ -644,29 +663,12 @@ class PageOne(tk.Frame):
                 for i in self.grid_slaves(row= 3, column = 4):
                     i.destroy()
         else:    
-            self.formulaGenerator = rackMaker()
             ttr= self.formulaGenerator.createTestTubeRack(formula)
             self.currentFileName = formula
             self.ttr = ttr
             self.create_charts()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
-
-            self.u = tk.Button(self, text = "Save", command = lambda: self.saveFormula()) 
-            self.u.grid(row= 0, column = 7)
-            self.ListOfWidgets.append(self.u)
-
-            self.h = tk.Button(self, text = "Save As", command = lambda: self.saveAsFormula()) 
-            self.h.grid(row= 0, column = 8)
-            self.ListOfWidgets.append(self.h)
-
-            self.h = tk.Button(self, text = "Delete", command = lambda: self.deleteFormula()) 
-            self.h.grid(row= 1, column = 8)
-            self.ListOfWidgets.append(self.h)
-
-            self.j = tk.Button(self, text = "Open", command = lambda: self.openFormula()) 
-            self.j.grid(row= 1, column = 7)
-            self.ListOfWidgets.append(self.j)
             
             rowVal = 6
             for tt in ttr.testTubes:
