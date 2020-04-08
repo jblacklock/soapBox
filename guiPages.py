@@ -133,6 +133,8 @@ class PageOne(tk.Frame):
         self.CPriceLabel = tk.Label(self, text= "Total Cost:")
         fillVariToConcentration = tk.Button(self, text="Fill Vari to Concentration", command=lambda: self.fillVariToConcentration())
         fillVariToConcentration.grid(row = 4, column = 2)
+
+        # TODO CALLING THE WRONG FUNCTION
         reduceVariToPrice = tk.Button(self, text="Reduce Vari to Price", command=lambda: self.reduceToPrice())
         reduceVariToPrice.grid(row = 4, column = 3)
         fillVariToPrice = tk.Button(self, text="Fill Vari to Price", command=lambda: self.fillVariToPrice())

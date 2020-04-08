@@ -233,7 +233,14 @@ class testTubeRack:
             while remainingReducableCost != 0: # condition to break the while loop, once all cost is accounted for, loop will be broken
                 for i in range(0,len(self.testTubes)): # loop to get the position of the reduceable ingredients in the rack and important information
                     if self.testTubes[i].name in reduceableIngredients: # finds reduceable ingredients
-                        ingredientPrices.append(self.testTubes[i].getCost()) # returns current cost of each ingredient
+                        # Fix 04/07/2020
+                        if self.testTubes[i].getCost() != 0:
+                            ingredientPrices.append(self.testTubes[i].getCost()) # returns current cost of each ingredient
+                        else:
+                            reduceableIngredients.remove(self.testTubes[i].name)
+                            N-=1
+                            if N <= 0:
+                                return
                 lowestCost = min(ingredientPrices) # determine the lowest cost in the available reduceable ingredients
                 if remainingReducableCost/N <= lowestCost: # this is important to know if we can or cannot evenly distribute the change in price to each ingredient
                     for i in range(0,len(self.testTubes)):
