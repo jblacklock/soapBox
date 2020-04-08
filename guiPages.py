@@ -133,8 +133,6 @@ class PageOne(tk.Frame):
         self.CPriceLabel = tk.Label(self, text= "Total Cost:")
         fillVariToConcentration = tk.Button(self, text="Fill Vari to Concentration", command=lambda: self.fillVariToConcentration())
         fillVariToConcentration.grid(row = 4, column = 2)
-
-        # TODO CALLING THE WRONG FUNCTION
         reduceVariToPrice = tk.Button(self, text="Reduce Vari to Price", command=lambda: self.reduceToPrice())
         reduceVariToPrice.grid(row = 4, column = 3)
         fillVariToPrice = tk.Button(self, text="Fill Vari to Price", command=lambda: self.fillVariToPrice())
@@ -168,7 +166,6 @@ class PageOne(tk.Frame):
     def fillVariToConcentration(self):
         self.ttr.fillToConcentration(self.ListOfVari)
         self.updatePriceConcentrationCost()
-
     
     def reduceToPrice(self):
         self.ttr.increaseSolventWhenReduceToPricePoint(self.ListOfSolvents ,self.ListOfVari)
@@ -391,6 +388,14 @@ class PageOne(tk.Frame):
             self.r.grid(row= rowVal, column = 8)
             self.ListOfWidgets.append(self.r)
 
+            self.v = tk.Button(self, text = "↑", command = lambda rowVal = rowVal: self.MoveUp(rowVal)) 
+            self.v.grid(row= rowVal, column = 9)
+            self.ListOfWidgets.append(self.v)
+            
+            self.p = tk.Button(self, text = "↓", command = lambda rowVal = rowVal: self.MoveDown(rowVal)) 
+            self.p.grid(row= rowVal, column = 10)
+            self.ListOfWidgets.append(self.p)
+
             self.lastIngredientRow += 1
         
 
@@ -460,7 +465,7 @@ class PageOne(tk.Frame):
                     del self.ttr.testTubes[i]
                     break
         # destroys all widgets for the chosen ingredient in the front end
-        for j in range(0,9):
+        for j in range(0,11):
             self.grid_slaves(row = rowVal, column = j)[0].grid_remove()
         self.updateCurrentPrice()
         self.create_charts()
@@ -478,6 +483,111 @@ class PageOne(tk.Frame):
     def removeFromVari(self, ingredientName: str):
         if ingredientName in self.ListOfVari:
             self.ListOfVari.remove(ingredientName)
+
+
+    def MoveUp(self, rowVal: int) -> None:
+        if rowVal == 6:
+            return
+        topRowVal = rowVal - 1
+        topRMN = self.grid_slaves(row=topRowVal, column = 2)[0]['text']
+        topsolvName = self.grid_slaves(row=topRowVal, column = 3)[0]['text']
+        topPPLB = self.grid_slaves(row=topRowVal, column = 4)[0]['text']
+        topConcentration = self.grid_slaves(row=topRowVal, column = 5)[0].get()
+        topCost = self.grid_slaves(row=topRowVal, column = 6)[0].get()
+
+        bottomRMN = self.grid_slaves(row=rowVal, column = 2)[0]['text']
+        bottomsolvName = self.grid_slaves(row=rowVal, column = 3)[0]['text']
+        bottomPPLB = self.grid_slaves(row=rowVal, column = 4)[0]['text']
+        bottomConcentration = self.grid_slaves(row=rowVal, column = 5)[0].get()
+        bottomCost = self.grid_slaves(row=rowVal, column = 6)[0].get()
+
+        self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost)
+        self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost)
+        
+        self.ttr.swapIngredients(topsolvName, bottomsolvName)
+        
+
+    def MoveDown(self, rowVal: int) -> None:
+        if rowVal >= (self.lastIngredientRow -1):
+            return
+        topRowVal = rowVal + 1
+        topRMN = self.grid_slaves(row=topRowVal, column = 2)[0]['text']
+        topsolvName = self.grid_slaves(row=topRowVal, column = 3)[0]['text']
+        topPPLB = self.grid_slaves(row=topRowVal, column = 4)[0]['text']
+        topConcentration = self.grid_slaves(row=topRowVal, column = 5)[0].get()
+        topCost = self.grid_slaves(row=topRowVal, column = 6)[0].get()
+
+        bottomRMN = self.grid_slaves(row=rowVal, column = 2)[0]['text']
+        bottomsolvName = self.grid_slaves(row=rowVal, column = 3)[0]['text']
+        bottomPPLB = self.grid_slaves(row=rowVal, column = 4)[0]['text']
+        bottomConcentration = self.grid_slaves(row=rowVal, column = 5)[0].get()
+        bottomCost = self.grid_slaves(row=rowVal, column = 6)[0].get()
+
+        self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost)
+        self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost)
+
+        self.ttr.swapIngredients(topsolvName, bottomsolvName)
+
+
+
+    def GenerateRow(self, rowVal:int, variVal: str, solvVal:str, rmn: str, solvName: str, pricePerPound: float, concentration:float, cost:float) -> None:
+        for y in range(0,11):
+            self.grid_slaves(row= rowVal, column = y)[0].destroy()
+
+        self.vari = tk.Checkbutton(self, padx = 20, command = lambda rowVal=rowVal: self.AddVari(rowVal))
+        if solvName in self.ListOfVari:
+            self.vari.select()
+        self.vari.grid(row= rowVal, column = 0)
+        self.ListOfWidgets.append(self.vari)
+
+        self.sol = tk.Checkbutton(self, padx = 20, command = lambda rowVal=rowVal: self.AddSolvent(rowVal))
+        if solvName in self.ListOfSolvents:
+            self.sol.select()
+        self.sol.grid(row= rowVal, column = 1)
+        self.ListOfWidgets.append(self.sol)
+
+        self.z = tk.Label(self, text = rmn) 
+        self.z.grid(row= rowVal, column = 2)
+        self.ListOfWidgets.append(self.z)
+        self.z.bind("<Button-1>",lambda e, z=self.z, rowVal = rowVal: self.changeLabel(z, rowVal, 2))
+
+        self.x = tk.Label(self, text = solvName) 
+        self.x.grid(row= rowVal, column = 3)
+        self.ListOfWidgets.append(self.x)
+        self.x.bind("<Button-1>",lambda e, x=self.x, rowVal = rowVal: self.changeLabel(x, rowVal, 3))
+        
+        self.y = tk.Label(self, text = pricePerPound) 
+        self.y.grid(row= rowVal, column = 4)
+        self.ListOfWidgets.append(self.y)
+        self.y.bind("<Button-1>",lambda e, y=self.y, rowVal = rowVal: self.changeLabel(y, rowVal, 4))
+
+        self.t = tk.Entry(self) 
+        self.t.insert(END, concentration)
+        self.t.bind("<Return>", lambda e, rowVal = rowVal: self.alterIngredientConcentration(rowVal))
+        self.t.grid(row= rowVal, column = 5)
+        self.ListOfWidgets.append(self.t)
+
+        self.m = tk.Entry(self) 
+        self.m.insert(END, cost)
+        self.m.bind("<Return>", lambda e, rowVal = rowVal: self.alterIngredientPrice(rowVal))
+        self.m.grid(row= rowVal, column = 6)
+        self.ListOfWidgets.append(self.m)
+        
+        self.q = tk.Button(self, text = "Fill", command = lambda rowVal = rowVal: self.FillIngredient(rowVal)) 
+        self.q.grid(row= rowVal, column = 7)
+        self.ListOfWidgets.append(self.q)
+        
+        self.r = tk.Button(self, text = "Delete", command = lambda rowVal = rowVal: self.DeleteIngredient(rowVal)) 
+        self.r.grid(row= rowVal, column = 8)
+        self.ListOfWidgets.append(self.r)
+
+        self.v = tk.Button(self, text = "↑", command = lambda rowVal = rowVal: self.MoveUp(rowVal)) 
+        self.v.grid(row= rowVal, column = 9)
+        self.ListOfWidgets.append(self.v)
+        
+        self.p = tk.Button(self, text = "↓", command = lambda rowVal = rowVal: self.MoveDown(rowVal)) 
+        self.p.grid(row= rowVal, column = 10)
+        self.ListOfWidgets.append(self.p)
 
 
 
@@ -715,6 +825,15 @@ class PageOne(tk.Frame):
                 self.r = tk.Button(self, text = "Delete", command = lambda rowVal = rowVal: self.DeleteIngredient(rowVal)) 
                 self.r.grid(row= rowVal, column = 8)
                 self.ListOfWidgets.append(self.r)
+
+                self.v = tk.Button(self, text = "↑", command = lambda rowVal = rowVal: self.MoveUp(rowVal)) 
+                self.v.grid(row= rowVal, column = 9)
+                self.ListOfWidgets.append(self.v)
+                
+                self.p = tk.Button(self, text = "↓", command = lambda rowVal = rowVal: self.MoveDown(rowVal)) 
+                self.p.grid(row= rowVal, column = 10)
+                self.ListOfWidgets.append(self.p)
+
 
                 rowVal += 1
                 self.lastIngredientRow = rowVal

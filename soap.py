@@ -127,6 +127,19 @@ class testTubeRack:
         self.testTubes = [] # add the testtube to the rack of tubes
         self.name = name # associate the name in the rack
 
+    def swapIngredients(self, ingredientOne: str, ingredientTwo: str) -> None:
+        indexCounter = 0
+        for tt in self.testTubes:
+            if tt.name == ingredientOne:
+                ingredientOneIndex = indexCounter
+            if tt.name == ingredientTwo:
+                ingredientTwoIndex = indexCounter
+            indexCounter += 1
+        tempTestTubeOne = self.testTubes[ingredientOneIndex]
+        tempTestTubeTwo = self.testTubes[ingredientTwoIndex]
+        self.testTubes[ingredientOneIndex] = tempTestTubeTwo
+        self.testTubes[ingredientTwoIndex] = tempTestTubeOne
+
 # name of the testTubeRack
     def __repr__(self) -> str:
         return self.name # return the name of the formula
