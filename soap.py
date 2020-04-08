@@ -73,7 +73,7 @@ class testTube:
 # reduce the concentration of the tube by this $amount
 # FIXED! 04/07/2020 todo self.pricePerPound !=0 error handeling looks good?
     def reduceByPrice(self, amount: float) -> bool:
-        if self.pricePerPound != 0
+        if self.pricePerPound != 0:
             cost = self.getCost() # get the cost of the chemical using the getCost method
             newcost = cost - amount # calculate the new desired cost based on the amount and current cost
             if newcost < 0 or amount < 0: # check to make sure the cost is not out of bounds
@@ -86,7 +86,7 @@ class testTube:
 # increase the concentration of the tube by this $amount
 # FIXED! 04/07/2020 todo needs self.pricePerPound == 0 error
     def addByPrice(self, amount: float) -> bool:
-        if self.pricePerPound !=0
+        if self.pricePerPound !=0:
             newcost = self.getCost() + amount # calculate a new cost based off of the amount and current cost
             increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration based on the newcost
             if increasedConcentration > 100: # check that the concentration does not go out of bound
@@ -99,7 +99,7 @@ class testTube:
 # if the concentration was filled relative to the $amount, what would the concentration be?
 # FIXED! 04/07/2020 todo Handle $0 Price Per Pound divide by zero
     def concentrationIfFillToPrice(self, amount: float) -> float:
-        if self.pricePerPound != 0
+        if self.pricePerPound != 0:
             newcost = self.getCost() + amount # calculate the new cost based on the current cost and input amount
             increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration
             return increasedConcentration # return the increased concentration to be used later
