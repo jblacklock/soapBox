@@ -377,24 +377,64 @@ class testTubeRack:
                         break
 
 
-
+# test for errors
     def reduceSolventWhenFillToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
         self.emptyTubes(solvents) # empty tubes selected as solvents in the list
         self.fillToPrice(ingredientsToChange) # fill the ingredients that can change
         self.fillToConcentration(solvents) # refill the solvents to max concentration
-
+        solventMaxCost = [] # what is the current cost of each solvent
+        while self.getCost() - self.pricePoint > 0.00001: # Converge to this error, this should be okay for $solvents
+            self.reduceToPrice(ingredientsToChange) # reduce the price of the varis evenly
+            self.fillToConcentration(solvents) # Fill concentration of solvents
+            for i in range(0,len(self.testTubes)): # find solvents in rack
+                if self.testTubes[i].name in solvents: # find solvents in rack
+                    solventMaxCost.append(self.testTubes[i].pricePerPound) # append cost of solvents
+                    if sum(solventMaxCost) > self.pricePoint: # check to see if the cost of the solvents exceed the pricepoint, avoid infinite loop problem
+                        self.emptyTubes(ingredientsToChange) # empty varies
+                        self.emptyTubes(solvents) # empty solvents
+                        self.fillToPrice(solvents) # fill solvents to max price... which is to prove a point
+                        return
+                    else:
+                        solventMaxCost =[] # reset the cost of the solvents
 
 
     def increaseSolventWhenReduceToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
-        self.emptyTubes(solvents)
-        self.reduceToPrice(ingredientsToChange)
-        self.fillToConcentration(solvents)
-        if self.getCost() > self.pricePoint:
-            self.emptyTubes(solvents)
-        if self.getCost() < self.pricePoint:
-            self.fillToPrice(solvents)
+        self.emptyTubes(solvents) # empty solvents
+        self.reduceToPrice(ingredientsToChange) # reduce the ingredients to the price point
+        self.fillToConcentration(solvents) # fill the solvents
+
+        #TODO Check to see if this code works in both functions??
+    
+        solventMaxCost = [] # what is the current cost of each solvent
+        while self.getCost() - self.pricePoint > 0.00001: # Converge to this error, this should be okay for $solvents
+            self.reduceToPrice(ingredientsToChange) # reduce the price of the varis evenly
+            self.fillToConcentration(solvents) # Fill concentration of solvents
+            for i in range(0,len(self.testTubes)): # find solvents in rack
+                if self.testTubes[i].name in solvents: # find solvents in rack
+                    solventMaxCost.append(self.testTubes[i].pricePerPound) # append cost of solvents
+                    if sum(solventMaxCost) > self.pricePoint: # check to see if the cost of the solvents exceed the pricepoint, avoid infinite loop problem
+                        self.emptyTubes(ingredientsToChange) # empty varies
+                        self.emptyTubes(solvents) # empty solvents
+                        self.fillToPrice(solvents) # fill solvents to max price... which is to prove a point
+                        return
+                    else:
+                        solventMaxCost =[] # reset the cost of the solvents
+        # if self.getCost() > self.pricePoint:
+        #     self.emptyTubes(solvents)
+        # if self.getCost() < self.pricePoint:
+        #     self.fillToPrice(solvents)
 
 
+    def batchingInstructions(self, batchSize) -> List[Any]:
+        ingredientAmount = [] # initialize the list of names and batching amount
+        for tt in self.testTubes:
+            ingredientAmount.append([self.testTubes[tt].name, self.testTubes[tt].concentration * batchSize]) # append name of ingredient and batching amount
+        return ingredientAmount # return names and batching amount * Batching amount is in column 2
+        
+    def pricePerGallon(self, specificGravity) -> float:
+        lbPerGram = 1/453.592 # conversion 1 lb == 453.592 grams
+        mlPerGallon = 3785.41 # conversion 1 gallon == 3785.41 ml
+        return self.getCost() * lbPerGram * specificGravity * mlPerGallon # Calculates the price per gallon. * requires specific gravity input
 
 
 
