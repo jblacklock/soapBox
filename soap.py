@@ -71,31 +71,40 @@ class testTube:
         return (self.pricePerPound * self.concentration) / 100 # Calculate and return the cost of the chemical in the mixture, based on concentration and price per pound
 
 # reduce the concentration of the tube by this $amount
-# TODO self.pricePerPound !=0 error handeling looks good?
+# FIXED! 04/07/2020 todo self.pricePerPound !=0 error handeling looks good?
     def reduceByPrice(self, amount: float) -> bool:
-        cost = self.getCost() # get the cost of the chemical using the getCost method
-        newcost = cost - amount # calculate the new desired cost based on the amount and current cost
-        if newcost < 0 or amount < 0: # check to make sure the cost is not out of bounds
-            return False # necessary?...probably
-        self.concentration = 100 * newcost / self.pricePerPound # calculate the new concentration
-        return True
+        if self.pricePerPound != 0
+            cost = self.getCost() # get the cost of the chemical using the getCost method
+            newcost = cost - amount # calculate the new desired cost based on the amount and current cost
+            if newcost < 0 or amount < 0: # check to make sure the cost is not out of bounds
+                return False # necessary?...probably
+            self.concentration = 100 * newcost / self.pricePerPound # calculate the new concentration
+            return True
+        else:
+            return True
 
 # increase the concentration of the tube by this $amount
-# TODO needs self.pricePerPound == 0 error
+# FIXED! 04/07/2020 todo needs self.pricePerPound == 0 error
     def addByPrice(self, amount: float) -> bool:
-        newcost = self.getCost() + amount # calculate a new cost based off of the amount and current cost
-        increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration based on the newcost
-        if increasedConcentration > 100: # check that the concentration does not go out of bound
-            return False
-        self.concentration = increasedConcentration # set the new concentration
-        return True
+        if self.pricePerPound !=0
+            newcost = self.getCost() + amount # calculate a new cost based off of the amount and current cost
+            increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration based on the newcost
+            if increasedConcentration > 100: # check that the concentration does not go out of bound
+                return False
+            self.concentration = increasedConcentration # set the new concentration
+            return True
+        else:
+            return True
 
 # if the concentration was filled relative to the $amount, what would the concentration be?
-# TODO Handle $0 Price Per Pound divide by zero
+# FIXED! 04/07/2020 todo Handle $0 Price Per Pound divide by zero
     def concentrationIfFillToPrice(self, amount: float) -> float:
-        newcost = self.getCost() + amount # calculate the new cost based on the current cost and input amount
-        increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration
-        return increasedConcentration # return the increased concentration to be used later
+        if self.pricePerPound != 0
+            newcost = self.getCost() + amount # calculate the new cost based on the current cost and input amount
+            increasedConcentration = 100 * newcost / self.pricePerPound # calculate the new concentration
+            return increasedConcentration # return the increased concentration to be used later
+        else:
+            return self.concentration
 
 # Set the concentration of the tube to 0
     def emptyTube(self) -> None:
@@ -211,11 +220,13 @@ class testTubeRack:
 # if the cost of the ingredients is greater than the pricepoint, decrease the concentration of each listed ingredient until 
 # the pricpoint is reached. If an ingrdient reaches 0% concentration and the pricepoint is not reached, continue removing 
 # the concentration evenly from the other listed ingredients.
-# TODO if N == 0 break out of this method? - Justification: nothing should change if N == 0
+# FIXED! 04/07/2020 todo if N == 0 break out of this method? - Justification: nothing should change if N == 0
     def reduceToPrice(self, reduceableIngredients: List[str]) -> None:
         reduceCurrentPriceBy = self.getCost() - self.pricePoint # calculate the new desired price of the formula
         if reduceCurrentPriceBy > 0: # make sure input is reasonable and not out of bounds
             N = len(reduceableIngredients) # reduceable ingredients may change later if concentration is set to 0, still need the initial amount of reduceable ingredients
+            if N <= 0:
+                return
             remainingReducableCost = reduceCurrentPriceBy # this is important for breaking the while loop, reducecurrentpriceby changes later
             ingredientPrices = [] # i need to get their prices in a for loop, initializing this variable here
             lowestCost = 0 # initializing the lowest cost of all the ingredients, used later
@@ -254,8 +265,8 @@ class testTubeRack:
 # if the cost of the ingredients is less than the price point, increase the concentration of the listed ingredients
 # until the price point is met. If the total concentration of the rack needs to exceed 100% to reach the price point 
 # equally increase the price of each ingredient until the rack concentration = 100%
-# TODO if len(increaseableIngredeints) == 0 break out of this method
-# TODO concentration increaase != 0 error handeling
+# FIXED! 04/07/2020 todo if len(increaseableIngredeints) == 0 break out of this method
+# Never a problem: todo concentration increaase != 0 error handeling
     def fillToPrice(self, increaseableIngredients: List[str]) -> None:
         addCurrentPriceBy = self.pricePoint - self.getCost() # calculate the price the formula needs to increase to
         concentrationIncrease = 0 # initialize concentration increase to later check for going out of bounds of the max concentration of the rack
@@ -263,6 +274,8 @@ class testTubeRack:
         if addCurrentPriceBy > 0:
             for i in range(0,len(self.testTubes)):
                 if self.testTubes[i].name in increaseableIngredients: # find increaseable ingredients
+                    if len(increaseableIngredients) <= 0:
+                        return
                     potentialNewConcentration = self.testTubes[i].concentrationIfFillToPrice(addCurrentPriceBy/len(increaseableIngredients)) # determine what the concentration would be if allowed
                     concentrationIncrease += potentialNewConcentration - self.testTubes[i].concentration # calculate how much this increase would increase the overall concentration
             if concentrationIncrease > self.unusedRackConcentration(): # if the potential concentration greater than the available concentration in the rack
