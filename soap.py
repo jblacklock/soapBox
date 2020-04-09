@@ -237,8 +237,7 @@ class testTubeRack:
     def reduceToPrice(self, reduceableIngredients: List[str]) -> None:
         reduceCurrentPriceBy = self.getCost() - self.pricePoint # calculate the new desired price of the formula
         if reduceCurrentPriceBy > 0: # make sure input is reasonable and not out of bounds
-            N = len(reduceableIngredients) # reduceable ingredients may change later if concentration is set to 0, still need the initial amount of reduceable ingredients
-            if N <= 0:
+            if len(reduceableIngredients) <= 0:
                 return
             remainingReducableCost = reduceCurrentPriceBy # this is important for breaking the while loop, reducecurrentpriceby changes later
             ingredientPrices = [] # i need to get their prices in a for loop, initializing this variable here
@@ -251,14 +250,15 @@ class testTubeRack:
                             ingredientPrices.append(self.testTubes[i].getCost()) # returns current cost of each ingredient
                         else:
                             reduceableIngredients.remove(self.testTubes[i].name)
-                            N-=1
-                            if N <= 0:
+                            if len(reduceableIngredients) <= 0:
                                 return
+                if ingredientPrices == []:
+                    return
                 lowestCost = min(ingredientPrices) # determine the lowest cost in the available reduceable ingredients
-                if remainingReducableCost/N <= lowestCost: # this is important to know if we can or cannot evenly distribute the change in price to each ingredient
+                if remainingReducableCost/len(reduceableIngredients) <= lowestCost: # this is important to know if we can or cannot evenly distribute the change in price to each ingredient
                     for i in range(0,len(self.testTubes)):
                         if self.testTubes[i].name in reduceableIngredients:
-                            self.testTubes[i].reduceByPrice(remainingReducableCost/N) # evenly distribute the change in price to all reduceable ingredients
+                            self.testTubes[i].reduceByPrice(remainingReducableCost/len(reduceableIngredients)) # evenly distribute the change in price to all reduceable ingredients
                     break # no need to check remainingreduceablecost while loop is satisfied, the math is good enough
                 else: # if they are not evenly reduceable, first reduce everything by the lowest ingredient and remove it from the reduceable ingredients list
                     for i in range(0, len(self.testTubes)):
@@ -267,7 +267,6 @@ class testTubeRack:
                             remainingReducableCost -= lowestCost # necessary for breaking the while loop
                             reduceableIngredients.remove(self.testTubes[i].name) # if it is the lowest cost, remove from available ingredients
                             ingredientPrices.remove(lowestCost) # also remove the cost in the list of costs..
-                            N-=1 # reduce the number of available ingredients. this is important... but i think my be unnecessary, see two lines up
                         elif self.testTubes[i].name in reduceableIngredients: # reduce ingredients that are greater than the lowest cost by the lowest costing ingredient
                             self.testTubes[i].reduceByPrice(lowestCost)
                             remainingReducableCost -= lowestCost # to break while loop if condition is satisfied
@@ -275,10 +274,10 @@ class testTubeRack:
 
 
         # while remainingReducableCost != 0:
-        #     if remainingReducableCost/N <= 0:
+        #     if remainingReducableCost/len(reduceableIngredients) <= 0:
         #         for i in range(0, len(testTubeRack)):
         #             if List[i] == self.testTubes[i]:
-        #                 self.testTubes[i].reduceByPrice(remainingReducableCost/N)
+        #                 self.testTubes[i].reduceByPrice(remainingReducableCost/len(reduceableIngredients))
 
         # self.testTube.reduceByPrice
 
@@ -395,20 +394,17 @@ class testTubeRack:
         self.emptyTubes(solvents) # empty tubes selected as solvents in the list
         self.fillToPrice(ingredientsToChange) # fill the ingredients that can change
         self.fillToConcentration(solvents) # refill the solvents to max concentration
-        solventMaxCost = [] # what is the current cost of each solvent
-        while self.getCost() - self.pricePoint > 0.00001: # Converge to this error, this should be okay for $solvents
+        acceptableError = 0.00001
+        while self.getCost() - self.pricePoint > acceptableError: # Converge to this error, this should be okay for $solvents
+            oldCost = self.getCost()
             self.reduceToPrice(ingredientsToChange) # reduce the price of the varis evenly
             self.fillToConcentration(solvents) # Fill concentration of solvents
-            for i in range(0,len(self.testTubes)): # find solvents in rack
-                if self.testTubes[i].name in solvents: # find solvents in rack
-                    solventMaxCost.append(self.testTubes[i].pricePerPound) # append cost of solvents
-                    if sum(solventMaxCost) > self.pricePoint: # check to see if the cost of the solvents exceed the pricepoint, avoid infinite loop problem
-                        self.emptyTubes(ingredientsToChange) # empty varies
-                        self.emptyTubes(solvents) # empty solvents
-                        self.fillToPrice(solvents) # fill solvents to max price... which is to prove a point
-                        return
-                    else:
-                        solventMaxCost =[] # reset the cost of the solvents
+            newCost = self.getCost()
+            if newCost >= oldCost:
+                self.emptyTubes(ingredientsToChange) # empty varies
+                self.emptyTubes(solvents) # empty solvents
+                self.fillToPrice(solvents)
+                return
 
 
     def increaseSolventWhenReduceToPricePoint(self, solvents: List[str], ingredientsToChange: List[str]) -> None:
@@ -416,35 +412,31 @@ class testTubeRack:
         self.reduceToPrice(ingredientsToChange) # reduce the ingredients to the price point
         self.fillToConcentration(solvents) # fill the solvents
 
-        #TODO Check to see if this code works in both functions??
-    
-        solventMaxCost = [] # what is the current cost of each solvent
-        while self.getCost() - self.pricePoint > 0.00001: # Converge to this error, this should be okay for $solvents
+        acceptableError = 0.00001
+        while self.getCost() - self.pricePoint > acceptableError: # Converge to this error, this should be okay for $solvents
+            oldCost = self.getCost()
             self.reduceToPrice(ingredientsToChange) # reduce the price of the varis evenly
             self.fillToConcentration(solvents) # Fill concentration of solvents
-            for i in range(0,len(self.testTubes)): # find solvents in rack
-                if self.testTubes[i].name in solvents: # find solvents in rack
-                    solventMaxCost.append(self.testTubes[i].pricePerPound) # append cost of solvents
-                    if sum(solventMaxCost) > self.pricePoint: # check to see if the cost of the solvents exceed the pricepoint, avoid infinite loop problem
-                        self.emptyTubes(ingredientsToChange) # empty varies
-                        self.emptyTubes(solvents) # empty solvents
-                        self.fillToPrice(solvents) # fill solvents to max price... which is to prove a point
-                        return
-                    else:
-                        solventMaxCost =[] # reset the cost of the solvents
+            newCost = self.getCost()
+            if newCost >= oldCost:
+                self.emptyTubes(ingredientsToChange) # empty varies
+                self.emptyTubes(solvents) # empty solvents
+                self.fillToPrice(solvents)
+                return
+
         # if self.getCost() > self.pricePoint:
         #     self.emptyTubes(solvents)
         # if self.getCost() < self.pricePoint:
         #     self.fillToPrice(solvents)
 
 
-    def batchingInstructions(self, batchSize) -> List[Any]:
+    def batchingInstructions(self, batchSize:float) -> List[Any]:
         ingredientAmount = [] # initialize the list of names and batching amount
         for tt in self.testTubes:
             ingredientAmount.append([self.testTubes[tt].name, self.testTubes[tt].concentration * batchSize]) # append name of ingredient and batching amount
         return ingredientAmount # return names and batching amount * Batching amount is in column 2
         
-    def pricePerGallon(self, specificGravity) -> float:
+    def pricePerGallon(self, specificGravity:float) -> float:
         lbPerGram = 1/453.592 # conversion 1 lb == 453.592 grams
         mlPerGallon = 3785.41 # conversion 1 gallon == 3785.41 ml
         return self.getCost() * lbPerGram * specificGravity * mlPerGallon # Calculates the price per gallon. * requires specific gravity input

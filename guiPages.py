@@ -607,6 +607,7 @@ class PageOne(tk.Frame):
     def updateCurrentPrice(self):
         self.currentPriceValue.config(text = str(self.ttr.getCost()))
         self.create_charts()
+        self.showPricePerGallon()
 
     def create_charts(self):
         prices = []
@@ -721,6 +722,13 @@ class PageOne(tk.Frame):
         self.formulaGenerator.deleteFormula(fileNameToDelete)
         self.controller.show_frame("StartPage", "")
 
+    def showPricePerGallon(self) -> None:
+        specificGravity = self.grid_slaves(column = 11, row = 3)[0].get()
+        value = self.ttr.pricePerGallon(float(specificGravity))
+        self.ppg = tk.Label(self, text = value) 
+        self.ppg.grid(row= 3, column = 12)
+        self.ListOfWidgets.append(self.ppg)
+
 
     def setFormula(self, formula: str):
         self.grid_slaves(row = 0, column = 1)
@@ -754,6 +762,12 @@ class PageOne(tk.Frame):
         self.j.grid(row= 1, column = 7)
         self.ListOfWidgets.append(self.j)
         
+        self.specificGravity = tk.Entry(self)
+        self.specificGravity.insert(END, 1)
+        self.specificGravity.bind("<Return>", lambda e: self.showPricePerGallon())
+        self.specificGravity.grid(row = 3, column = 11)
+        self.ListOfWidgets.append(self.specificGravity)
+
         self.formulaGenerator = rackMaker()
 
         if formula == "Create New Formula":
@@ -775,6 +789,7 @@ class PageOne(tk.Frame):
             self.currentFileName = formula
             self.ttr = ttr
             self.create_charts()
+            self.showPricePerGallon()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
             
