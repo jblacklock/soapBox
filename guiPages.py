@@ -162,7 +162,6 @@ class PageOne(tk.Frame):
             self.updateIngredientConcentration(self.dictOfIngredientsAndRows[rowVal])
             self.updateIngredientCost(self.dictOfIngredientsAndRows[rowVal])
 
-
     def fillVariToConcentration(self):
         self.ttr.fillToConcentration(self.ListOfVari)
         self.updatePriceConcentrationCost()
@@ -303,6 +302,7 @@ class PageOne(tk.Frame):
                 newIngredientCost = self.ttr.testTubes[i].getCost()
         self.grid_slaves(row= rowVal, column=6)[0].delete(0, END)
         self.grid_slaves(row= rowVal, column=6)[0].insert(END, newIngredientCost)
+        self.batchingInstructions()
 
     def updateIngredientConcentration(self, rowVal: int):
         ingredientName = self.grid_slaves(row = rowVal, column = 3)[0].cget("text")
@@ -415,6 +415,7 @@ class PageOne(tk.Frame):
         self.updateCurrentPrice()
         self.updateIngredientCost(rowVal)
 
+
     def alterIngredientPrice(self, rowVal):    
         ingredientName = self.grid_slaves(row= rowVal, column = 3)[0]['text']
         alteredConcentration = self.grid_slaves(row= rowVal, column = 6)[0].get()
@@ -494,15 +495,17 @@ class PageOne(tk.Frame):
         topPPLB = self.grid_slaves(row=topRowVal, column = 4)[0]['text']
         topConcentration = self.grid_slaves(row=topRowVal, column = 5)[0].get()
         topCost = self.grid_slaves(row=topRowVal, column = 6)[0].get()
+        topBatchSize = self.grid_slaves(row = topRowVal, column = 11)[0]['text']
 
         bottomRMN = self.grid_slaves(row=rowVal, column = 2)[0]['text']
         bottomsolvName = self.grid_slaves(row=rowVal, column = 3)[0]['text']
         bottomPPLB = self.grid_slaves(row=rowVal, column = 4)[0]['text']
         bottomConcentration = self.grid_slaves(row=rowVal, column = 5)[0].get()
         bottomCost = self.grid_slaves(row=rowVal, column = 6)[0].get()
+        bottomBatchSize = self.grid_slaves(row = rowVal, column = 11)[0]['text']
 
-        self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost)
-        self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost)
+        self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost, bottomBatchSize)
+        self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost, topBatchSize)
         
         self.ttr.swapIngredients(topsolvName, bottomsolvName)
         
@@ -516,22 +519,24 @@ class PageOne(tk.Frame):
         topPPLB = self.grid_slaves(row=topRowVal, column = 4)[0]['text']
         topConcentration = self.grid_slaves(row=topRowVal, column = 5)[0].get()
         topCost = self.grid_slaves(row=topRowVal, column = 6)[0].get()
+        topBatchSize = self.grid_slaves(row = topRowVal, column = 11)[0]['text']
 
         bottomRMN = self.grid_slaves(row=rowVal, column = 2)[0]['text']
         bottomsolvName = self.grid_slaves(row=rowVal, column = 3)[0]['text']
         bottomPPLB = self.grid_slaves(row=rowVal, column = 4)[0]['text']
         bottomConcentration = self.grid_slaves(row=rowVal, column = 5)[0].get()
         bottomCost = self.grid_slaves(row=rowVal, column = 6)[0].get()
+        bottomBatchSize = self.grid_slaves(row = rowVal, column = 11)[0]['text']
 
-        self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost)
-        self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost)
+        self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost, bottomBatchSize)
+        self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost, topBatchSize)
 
         self.ttr.swapIngredients(topsolvName, bottomsolvName)
 
 
 
-    def GenerateRow(self, rowVal:int, variVal: str, solvVal:str, rmn: str, solvName: str, pricePerPound: float, concentration:float, cost:float) -> None:
-        for y in range(0,11):
+    def GenerateRow(self, rowVal:int, variVal: str, solvVal:str, rmn: str, solvName: str, pricePerPound: float, concentration:float, cost:float, batchSize:str) -> None:
+        for y in range(0,12):
             self.grid_slaves(row= rowVal, column = y)[0].destroy()
 
         self.vari = tk.Checkbutton(self, padx = 20, command = lambda rowVal=rowVal: self.AddVari(rowVal))
@@ -588,6 +593,11 @@ class PageOne(tk.Frame):
         self.p = tk.Button(self, text = "↓", command = lambda rowVal = rowVal: self.MoveDown(rowVal)) 
         self.p.grid(row= rowVal, column = 10)
         self.ListOfWidgets.append(self.p)
+
+        self.bs = tk.Label(self, text = batchSize) 
+        self.bs.grid(row= rowVal, column = 11)
+        self.ListOfWidgets.append(self.bs)
+        self.bs.bind("<Button-1>",lambda e, bs=self.bs, rowVal = rowVal: self.changeLabel(bs, rowVal, 11))
 
 
 
@@ -724,10 +734,28 @@ class PageOne(tk.Frame):
 
     def showPricePerGallon(self) -> None:
         specificGravity = self.grid_slaves(column = 11, row = 3)[0].get()
-        value = self.ttr.pricePerGallon(float(specificGravity))
-        self.ppg = tk.Label(self, text = value) 
-        self.ppg.grid(row= 3, column = 12)
-        self.ListOfWidgets.append(self.ppg)
+        try:
+            value = self.ttr.pricePerGallon(float(specificGravity))
+            self.ppg = tk.Label(self, text = value) 
+            self.ppg.grid(row= 3, column = 12)
+            self.ListOfWidgets.append(self.ppg)
+        except:
+            return
+
+    def batchingInstructions(self) -> None:
+        batchSize = self.grid_slaves(column=11, row=4)[0].get()
+        try: 
+            value = self.ttr.batchingInstructions(float(batchSize))
+            for x in range(0,len(value)):
+                labelContent = value[x][1]
+                self.quantity = tk.Label(self, text = labelContent)
+                if len(self.grid_slaves(row=x+6, column=11)) > 0:
+                    self.grid_slaves(row= x+6, column = 11)[0].destroy()
+                self.quantity.grid(row = x + 6, column = 11)
+                self.ListOfWidgets.append(self.quantity)
+        except:
+            return
+
 
 
     def setFormula(self, formula: str):
@@ -768,6 +796,13 @@ class PageOne(tk.Frame):
         self.specificGravity.grid(row = 3, column = 11)
         self.ListOfWidgets.append(self.specificGravity)
 
+        # Entry to determine batch size 4
+        self.batchSize = tk.Entry(self)
+        self.batchSize.insert(END, 1)
+        self.batchSize.bind("<Return>", lambda e: self.batchingInstructions())
+        self.batchSize.grid(row = 4, column = 11)
+        self.ListOfWidgets.append(self.batchSize)
+
         self.formulaGenerator = rackMaker()
 
         if formula == "Create New Formula":
@@ -792,6 +827,7 @@ class PageOne(tk.Frame):
             self.showPricePerGallon()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
+            self.batchingInstructions()
             
             rowVal = 6
             for tt in ttr.testTubes:

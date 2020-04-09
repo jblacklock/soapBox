@@ -44,6 +44,7 @@ class testTube:
         self.concentration -= amount # decrease the concentration of the chemical by the amount
         return True # return true, is returning a bool even necessary in this method?
 
+# TODO NOT USED, what replaced this?
     def alterByConcentration(self, newConc: float) -> bool:
         difference = self.concentration - newConc
         if difference < 0:
@@ -51,6 +52,7 @@ class testTube:
         if difference > 0:
             self.reduceByConcentration(difference)
 
+# TODO NOT USED, what replaced this?
     def alterByPrice(self, newPrice: float) -> bool:
         difference = self.getCost() - newPrice
         if difference < 0:
@@ -433,7 +435,8 @@ class testTubeRack:
     def batchingInstructions(self, batchSize:float) -> List[Any]:
         ingredientAmount = [] # initialize the list of names and batching amount
         for tt in self.testTubes:
-            ingredientAmount.append([self.testTubes[tt].name, self.testTubes[tt].concentration * batchSize]) # append name of ingredient and batching amount
+            ingredientAmount.append([tt.name, tt.concentration * batchSize / 100]) # append name of ingredient and batching amount
+            print(tt.name + ": " + str(tt.concentration))
         return ingredientAmount # return names and batching amount * Batching amount is in column 2
         
     def pricePerGallon(self, specificGravity:float) -> float:
