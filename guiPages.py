@@ -264,9 +264,6 @@ class PageOne(tk.Frame):
         self.dictOfIngredientsAndRows.pop(labelText)
         self.dictOfIngredientsAndRows[newValue] = rowVal
 
-        print("This is the new dict")
-        for x in self.dictOfIngredientsAndRows:
-            print(x)
 
     def changeIngredientName(self, oldIngredientName: str, contentType: str, rowVal: int, colVal: int) -> bool:
         newIngredientName = self.grid_slaves(row = rowVal, column = colVal)[0].get()
@@ -466,7 +463,7 @@ class PageOne(tk.Frame):
                     del self.ttr.testTubes[i]
                     break
         # destroys all widgets for the chosen ingredient in the front end
-        for j in range(0,11):
+        for j in range(0,12):
             self.grid_slaves(row = rowVal, column = j)[0].grid_remove()
         self.updateCurrentPrice()
         self.create_charts()
@@ -474,6 +471,7 @@ class PageOne(tk.Frame):
         self.removeFromSolvents(ingredientName)
         self.removeFromVari(ingredientName)
         self.dictOfIngredientsAndRows.pop(ingredientName)
+        self.batchingInstructions()
 
 
     def removeFromSolvents(self, ingredientName: str):
@@ -504,6 +502,9 @@ class PageOne(tk.Frame):
         bottomCost = self.grid_slaves(row=rowVal, column = 6)[0].get()
         bottomBatchSize = self.grid_slaves(row = rowVal, column = 11)[0]['text']
 
+        self.dictOfIngredientsAndRows.pop(topsolvName)
+        self.dictOfIngredientsAndRows.pop(bottomsolvName)
+
         self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost, bottomBatchSize)
         self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost, topBatchSize)
         
@@ -527,6 +528,9 @@ class PageOne(tk.Frame):
         bottomConcentration = self.grid_slaves(row=rowVal, column = 5)[0].get()
         bottomCost = self.grid_slaves(row=rowVal, column = 6)[0].get()
         bottomBatchSize = self.grid_slaves(row = rowVal, column = 11)[0]['text']
+
+        self.dictOfIngredientsAndRows.pop(topsolvName)
+        self.dictOfIngredientsAndRows.pop(bottomsolvName)
 
         self.GenerateRow(topRowVal, "", "", bottomRMN, bottomsolvName, bottomPPLB, bottomConcentration, bottomCost, bottomBatchSize)
         self.GenerateRow(rowVal, "", "", topRMN, topsolvName, topPPLB, topConcentration, topCost, topBatchSize)
@@ -598,6 +602,8 @@ class PageOne(tk.Frame):
         self.bs.grid(row= rowVal, column = 11)
         self.ListOfWidgets.append(self.bs)
         self.bs.bind("<Button-1>",lambda e, bs=self.bs, rowVal = rowVal: self.changeLabel(bs, rowVal, 11))
+
+        self.dictOfIngredientsAndRows[solvName] = rowVal
 
 
 
@@ -747,11 +753,13 @@ class PageOne(tk.Frame):
         try: 
             value = self.ttr.batchingInstructions(float(batchSize))
             for x in range(0,len(value)):
+                ingredName = value[x][0]
+                properRow = self.dictOfIngredientsAndRows[ingredName]
                 labelContent = value[x][1]
                 self.quantity = tk.Label(self, text = labelContent)
-                if len(self.grid_slaves(row=x+6, column=11)) > 0:
-                    self.grid_slaves(row= x+6, column = 11)[0].destroy()
-                self.quantity.grid(row = x + 6, column = 11)
+                if len(self.grid_slaves(row= properRow, column=11)) > 0:
+                    self.grid_slaves(row= properRow, column = 11)[0].destroy()
+                self.quantity.grid(row = properRow, column = 11)
                 self.ListOfWidgets.append(self.quantity)
         except:
             return
@@ -827,7 +835,7 @@ class PageOne(tk.Frame):
             self.showPricePerGallon()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
-            self.batchingInstructions()
+            
             
             rowVal = 6
             for tt in ttr.testTubes:
@@ -888,6 +896,7 @@ class PageOne(tk.Frame):
 
                 rowVal += 1
                 self.lastIngredientRow = rowVal
+            self.batchingInstructions()
             
                
 
