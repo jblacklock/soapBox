@@ -1,16 +1,19 @@
 import tkinter as tk                
 from tkinter import font  as tkfont 
 from tkinter import *
+from tkinter import filedialog
 from soap import rackMaker, testTubeRack, testTube
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import glob, os
+from os import path
 import numpy as np
 
 class SampleApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-
+        
         self.title_font = tkfont.Font(family='Helvetica', size=30, weight="bold", slant="italic")
 
         # the container is where we'll stack a bunch of frames
@@ -33,14 +36,55 @@ class SampleApp(tk.Tk):
             # will be the one that is visible.
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame("StartPage", "")
+        self.a_frame = PageOne(container, self)
+        
 
+        self.show_frame("PageOne", "Create New Formula")
+
+    def create_menu(self):
+        self.menubar = tk.Menu(self)
+        self['menu'] = self.menubar
+
+        filemenu = Menu(self.menubar, tearoff=0)
+        filemenu.add_command(label="New", command = lambda: self.show_frame("PageOne", "Create New Formula"))
+        filemenu.add_command(label="Open", command=self.openFormula)
+        filemenu.add_command(label="Save", command=lambda: self.frames["PageOne"].saveFormula())
+        filemenu.add_command(label="Save As", command=lambda: self.frames["PageOne"].saveAsFormula())
+        filemenu.add_command(label="Open .XLSX", command= lambda: self.frames["PageOne"].openFormula())
+        filemenu.add_command(label="Delete", command= lambda: self.deleteFormula())
+        self.menubar.add_cascade(label="File", menu=filemenu)
+
+        # display the menu
+        self.config(menu=self.menubar)
+
+    # def adjust_menu(self, newMenu):
+    #     self.config(self, menu=newMenu)
+
+    # def emptyMenubar(self):
+    #     self.menubar = tk.Menu(self)
+    #     self['menu'] = self.menubar
+
+    def deleteFormula(self):
+        self.frames["PageOne"].deleteFormula()
+        self.show_frame("PageOne", "Create New Formula")
+
+    def openFormula(self):
+        dirPath = os.path.dirname(__file__)    
+        FormulaFileName = filedialog.askopenfilename(initialdir=dirPath+"/Formulas", title="Select Formula", filetypes = (("xlsx files","*.xlsx"),("all files","*.*")))
+        try:
+            print(FormulaFileName)
+            self.show_frame("PageOne", FormulaFileName)
+        except:
+            return
 
     def show_frame(self, page_name: str, formula: str) -> None:
         '''Show a frame for the given page name'''
         frame = self.frames[page_name]
         if page_name == "PageOne":
+            if formula == "":
+                return
             self.frames[page_name].setFormula(formula)
+            self.create_menu()
         if page_name == "StartPage":
             self.frames[page_name].fetchFormulas()
         frame.tkraise()
@@ -90,7 +134,32 @@ class StartPage(tk.Frame):
 
 class PageOne(tk.Frame):
 
+    def replace_menu(self):
+        # _parent_cls_name = type(self.master).__name__
+        # _valid_cls_names = ("Tk", "Toplevel", "Root")
+        # if _parent_cls_name in _valid_cls_names:
+            
+        self.menubar = tk.Menu(self)
+        filemenu = Menu(self.menubar, tearoff=0)
+        filemenu.add_command(label="Save", command=lambda: self.master.show_frame("StartPage", ""))
+        filemenu.add_command(label="Save As", command=lambda: self.master.show_frame("StartPage", ""))
+        filemenu.add_command(label="Open", command=lambda: self.master.show_frame("StartPage", ""))
+        filemenu.add_command(label="Delete", command=lambda: self.master.show_frame("StartPage", ""))
+        filemenu.add_command(label="Back", command=lambda: self.master.show_frame("StartPage", ""))
+    
+        filemenu.add_command(label="Exit", command=self.master.quit)
+        self.menubar.add_cascade(label="File", menu=filemenu)
+        
+        self.master.adjust_menu(self.menubar)
+
+        self.master['menu'] = self.menubar
+
+            
+            
+
+
     def __init__(self, parent, controller):
+
         self.backgroundColor = "#f0f0f0"
         self.pie1 = None
         self.pie2 = None
@@ -102,19 +171,33 @@ class PageOne(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         formula = "Error"
-        button = tk.Button(self, text="<- Back", command=lambda: controller.show_frame("StartPage", ""))
-        button.grid(row = 0, column = 0)
+        # button = tk.Button(self, text="<- Back", command=lambda: controller.show_frame("StartPage", ""))
+        # button.grid(row = 0, column = 0)
         self.label = tk.Label(self, text = formula, font=controller.title_font)
-        self.label.grid(row = 0, column = 1, columnspan = 3, rowspan = 2)
+        self.label.grid(row = 0, column = 0, columnspan = 3, rowspan = 2)
         self.targetPrice = tk.Label(self, text = "Target Price:")
-        self.targetPrice.grid(row = 0, column = 4)
+        self.targetPrice.grid(row = 0, column = 3)
+
+        self.Density = tk.Label(self, text = "Density:")
+        self.Density.grid(row = 0, column = 5)
+        self.PPG = tk.Label(self, text = "Price Per Gallon:")
+        self.PPG.grid(row = 1, column = 5)
+        self.BSize = tk.Label(self, text = "Batch Size:")
+        self.BSize.grid(row = 0, column = 7, columnspan = 4)
+
+        self.Notes = tk.Label(self, text = "Notes:")
+        self.Notes.grid(row = 2, column = 3, columnspan = 9)
+        self.NoteText = tk.Text(self, width = 80, height = 18)
+        self.NoteText.grid(row = 3, column = 3, columnspan = 9)
+        self.NoteText.bind("<KeyRelease>", lambda e: self.UpdateNotes())
+
         self.currentPrice = tk.Label(self, text = "Current Price:")
-        self.currentPrice.grid(row = 1, column = 4)
+        self.currentPrice.grid(row = 1, column = 3)
         self.targetPriceValue = tk.Label(self, text = "0")
-        self.targetPriceValue.grid(row = 0, column = 5)
-        self.targetPriceValue.bind("<Button-1>",lambda e, targetPriceValue=self.targetPriceValue:self.changeLabel(targetPriceValue, 0, 5))
+        self.targetPriceValue.grid(row = 0, column = 4)
+        self.targetPriceValue.bind("<Button-1>",lambda e, targetPriceValue=self.targetPriceValue:self.changeLabel(targetPriceValue, 0, 4))
         self.currentPriceValue = tk.Label(self, text = "0")
-        self.currentPriceValue.grid(row = 1, column = 5)
+        self.currentPriceValue.grid(row = 1, column = 4)
         self.variLabel = tk.Label(self, text= "Vari")
         self.variLabel.grid(row=5, column = 0)
         self.solvLabel = tk.Label(self, text= "Solvent")
@@ -129,6 +212,8 @@ class PageOne(tk.Frame):
         self.concentrationLabel.grid(row=5, column = 5)
         self.concentrationLabel = tk.Label(self, text= "Total Price")
         self.concentrationLabel.grid(row=5, column = 6)
+        self.bInstructions = tk.Label(self, text= "Batching Instructions")
+        self.bInstructions.grid(row=5, column = 11)
         self.currentPrice2 = tk.Label(self, text= "")
         self.CPriceLabel = tk.Label(self, text= "Total Cost:")
         fillVariToConcentration = tk.Button(self, text="Fill Vari to Concentration", command=lambda: self.fillVariToConcentration())
@@ -141,6 +226,9 @@ class PageOne(tk.Frame):
         self.CheckForVaris()
         addIngred.grid(row = 4, column = 1)
         
+    def UpdateNotes(self):
+        self.ttr.notes = self.grid_slaves(row = 3, column = 3)[0].get(1.0,END)
+
     def CheckForVaris(self):
         if len(self.ListOfVari) == 0:
             self.grid_slaves(row = 4, column = 2)[0]["state"] = "disabled"
@@ -188,7 +276,7 @@ class PageOne(tk.Frame):
 
     def changeLabel(self, label: Label, rowVal: int, colVal:int):
         pricePointRow = 0
-        pricePointColumn = 5 
+        pricePointColumn = 4
         labelText = label.cget("text")
         if rowVal != pricePointRow and colVal != pricePointColumn:
             label.destroy()
@@ -216,7 +304,7 @@ class PageOne(tk.Frame):
         title_font = tkfont.Font(family='Helvetica', size=30, weight="bold", slant="italic")
         self.entry = tk.Entry(self, font = title_font, width = 15) 
         self.entry.insert(END, labelText)
-        self.entry.grid(row= 0, column = 1, columnspan = 3)
+        self.entry.grid(row= 0, column = 0, columnspan = 3)
         self.entry.bind("<Return>", lambda e: self.returnFormulaLabel())
         self.label.config(fg = self.backgroundColor)
         
@@ -224,7 +312,7 @@ class PageOne(tk.Frame):
     def returnFormulaLabel(self):
         self.label.destroy()
         rowVal = 0
-        colVal = 1
+        colVal = 0
         entryToRemove = self.grid_slaves(row = rowVal, column = colVal)[0]
         labelContent = entryToRemove.get()
         entryToRemove.destroy()
@@ -657,12 +745,9 @@ class PageOne(tk.Frame):
             
             totalConcentration += self.ttr.testTubes[i].concentration
             
-            
-
         undefinedConcentration = 100 - totalConcentration
 
         if undefinedConcentration > 0:
-
             concentrations.append(undefinedConcentration)
             label1.append("Undefined")
             explode1.append(0)
@@ -676,8 +761,8 @@ class PageOne(tk.Frame):
         # pieSizes = [float(x1),float(x2),float(x3)]
         my_colors2 = ['lightblue','lightsteelblue', '#C85923', '#ECB471', '#A4596D', '#C0D6C0', '#8E5B5E', '#AABCD5']
       
-        subplot2.pie(prices, colors=my_colors2, labels= label2, explode=explode2, autopct='%1.1f%%', shadow=False, startangle=90) 
-        subplot1.pie(concentrations, colors=my_colors2, labels= label1, explode=explode1, autopct='%1.1f%%', shadow=False, startangle=90) 
+        subplot2.pie(prices, colors=my_colors2, labels= label2, explode=explode2, autopct='%1.1f%%', shadow=False, startangle=90, radius=1000) 
+        subplot1.pie(concentrations, colors=my_colors2, labels= label1, explode=explode1, autopct='%1.1f%%', shadow=False, startangle=90, radius=1000) 
         subplot2.axis('equal')  
         subplot1.axis('equal')  
 
@@ -689,14 +774,14 @@ class PageOne(tk.Frame):
         self.pie2 = FigureCanvasTkAgg(figure2, self)
         self.pie1 = FigureCanvasTkAgg(figure1, self)
 
-        if totalConcentration > 0:
-            self.pie1.get_tk_widget().grid(row = 3, column = 1, columnspan = 3)
-        else:
-            for i in self.grid_slaves(row=3, column = 1):
-                i.destroy()
+        # if totalConcentration > 0:
+        #     self.pie1.get_tk_widget().grid(row = 3, column = 3, columnspan = 3)
+        # else:
+        #     for i in self.grid_slaves(row=3, column = 1):
+        #         i.destroy()
         
         if totalFormulaCost > 0:
-            self.pie2.get_tk_widget().grid(row = 3, column = 4, columnspan = 3)
+            self.pie2.get_tk_widget().grid(row = 3, column = 0, columnspan = 3)
         else:
             for i in self.grid_slaves(row= 3, column = 4):
                     i.destroy()
@@ -739,17 +824,17 @@ class PageOne(tk.Frame):
         self.controller.show_frame("StartPage", "")
 
     def showPricePerGallon(self) -> None:
-        specificGravity = self.grid_slaves(column = 11, row = 3)[0].get()
+        specificGravity = self.grid_slaves(column = 6, row = 0)[0].get()
         try:
             value = self.ttr.pricePerGallon(float(specificGravity))
             self.ppg = tk.Label(self, text = value) 
-            self.ppg.grid(row= 3, column = 12)
+            self.ppg.grid(row= 1, column = 6)
             self.ListOfWidgets.append(self.ppg)
         except:
             return
 
     def batchingInstructions(self) -> None:
-        batchSize = self.grid_slaves(column=11, row=4)[0].get()
+        batchSize = self.grid_slaves(column=11, row=0)[0].get()
         try: 
             value = self.ttr.batchingInstructions(float(batchSize))
             for x in range(0,len(value)):
@@ -763,10 +848,16 @@ class PageOne(tk.Frame):
                 self.ListOfWidgets.append(self.quantity)
         except:
             return
+        
+       
 
-
-
-    def setFormula(self, formula: str):
+    def setFormula(self, formulaLocation: str):
+        if formulaLocation != "Create New Formula":
+            formula = formulaLocation[:-5]
+            locaysh = formulaLocation.rfind("/")
+            formula = formula[locaysh + 1:]
+        else: 
+            formula = formulaLocation
         self.grid_slaves(row = 0, column = 1)
         self.ListOfSolvents.clear()
         self.ListOfVari.clear()
@@ -781,37 +872,23 @@ class PageOne(tk.Frame):
             self.label.grid(row = 0, column = 1, columnspan = 3, rowspan = 2)
         self.label.config(text = self.formula)
         self.label.bind("<Button-1>",lambda e: self.changeFormulaName())
-
-        self.u = tk.Button(self, text = "Save", command = lambda: self.saveFormula()) 
-        self.u.grid(row= 0, column = 7)
-        self.ListOfWidgets.append(self.u)
-
-        self.h = tk.Button(self, text = "Save As", command = lambda: self.saveAsFormula()) 
-        self.h.grid(row= 0, column = 8)
-        self.ListOfWidgets.append(self.h)
-
-        self.h = tk.Button(self, text = "Delete", command = lambda: self.deleteFormula()) 
-        self.h.grid(row= 1, column = 8)
-        self.ListOfWidgets.append(self.h)
-
-        self.j = tk.Button(self, text = "Open", command = lambda: self.openFormula()) 
-        self.j.grid(row= 1, column = 7)
-        self.ListOfWidgets.append(self.j)
         
         self.specificGravity = tk.Entry(self)
         self.specificGravity.insert(END, 1)
         self.specificGravity.bind("<Return>", lambda e: self.showPricePerGallon())
-        self.specificGravity.grid(row = 3, column = 11)
+        self.specificGravity.grid(row = 0, column = 6)
         self.ListOfWidgets.append(self.specificGravity)
+
 
         # Entry to determine batch size 4
         self.batchSize = tk.Entry(self)
         self.batchSize.insert(END, 1)
         self.batchSize.bind("<Return>", lambda e: self.batchingInstructions())
-        self.batchSize.grid(row = 4, column = 11)
+        self.batchSize.grid(row = 0, column = 11)
         self.ListOfWidgets.append(self.batchSize)
 
         self.formulaGenerator = rackMaker()
+        self.NoteText.delete('1.0', END)
 
         if formula == "Create New Formula":
             uf= "Untitled Formula"
@@ -828,15 +905,15 @@ class PageOne(tk.Frame):
                 for i in self.grid_slaves(row= 3, column = 4):
                     i.destroy()
         else:    
-            ttr= self.formulaGenerator.createTestTubeRack(formula)
+            ttr= self.formulaGenerator.createTestTubeRack(formula, formulaLocation)
             self.currentFileName = formula
             self.ttr = ttr
             self.create_charts()
             self.showPricePerGallon()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
             self.currentPriceValue.config(text = str(ttr.getCost()))
-            
-            
+            self.NoteText.insert(INSERT, self.ttr.notes)
+                       
             rowVal = 6
             for tt in ttr.testTubes:
                 solvName = tt.name

@@ -128,6 +128,7 @@ class testTubeRack:
         self.pricePoint = pricePoint # set the pricepoint argument
         self.testTubes = [] # add the testtube to the rack of tubes
         self.name = name # associate the name in the rack
+        self.notes = ""
 
     def swapIngredients(self, ingredientOne: str, ingredientTwo: str) -> None:
         indexCounter = 0
@@ -183,6 +184,8 @@ class testTubeRack:
         row = 1
         col = 1
         
+        
+
         # Iterate over the data and write it out row by row. 
         for partNumber, Description, Quantity, currentCost in (scores): 
             worksheet.write(row, col, partNumber) 
@@ -191,6 +194,9 @@ class testTubeRack:
             worksheet.write(row, col + 4, currentCost)
             row += 1
         
+        worksheet.write(0,8, self.pricePoint)
+        worksheet.write(2,8, self.notes)
+
         workbook.close()  
         
 # change the target price of the rack
@@ -450,13 +456,9 @@ class testTubeRack:
 
 class rackMaker:
 
-    def createTestTubeRack(self, formulaName: str) -> testTubeRack:
-        # Give the location of the file 
-        dirPath = os.path.dirname(__file__)    
-        os.chdir(dirPath+"/Formulas")
-        loc = (formulaName+'.xlsx') 
-        # To open Workbook 
-        wb = xlrd.open_workbook(loc) 
+    def createTestTubeRack(self, formulaName: str, formulaLoc: str) -> testTubeRack:
+         # To open Workbook 
+        wb = xlrd.open_workbook(formulaLoc) 
         sheet = wb.sheet_by_index(0) 
         i = sheet.nrows
         # sheet.row_values(1)
@@ -470,6 +472,16 @@ class rackMaker:
         ttr = testTubeRack(formulaName, targetValue)
         for tt in allTestubes:
             ttr.createRackTube(tt[1], tt[2], tt[5], tt[4])
+        
+        try:
+            ttr.notes = sheet.cell(rowx = 2, colx = 8).value
+        except:
+            print("")
+        try:
+            ttr.pricePoint = float(sheet.cell(rowx = 0, colx = 8).value)
+        except:
+            print("")
+
         return ttr
 
 
