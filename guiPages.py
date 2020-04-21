@@ -149,9 +149,7 @@ class PageOne(tk.Frame):
     
         filemenu.add_command(label="Exit", command=self.master.quit)
         self.menubar.add_cascade(label="File", menu=filemenu)
-        
         self.master.adjust_menu(self.menubar)
-
         self.master['menu'] = self.menubar
 
             
@@ -178,7 +176,7 @@ class PageOne(tk.Frame):
         self.targetPrice = tk.Label(self, text = "Target Price:")
         self.targetPrice.grid(row = 0, column = 3)
 
-        self.Density = tk.Label(self, text = "Density:")
+        self.Density = tk.Label(self, text = "Specific Gravity:")
         self.Density.grid(row = 0, column = 5)
         self.PPG = tk.Label(self, text = "Price Per Gallon:")
         self.PPG.grid(row = 1, column = 5)
@@ -783,12 +781,12 @@ class PageOne(tk.Frame):
         if totalFormulaCost > 0:
             self.pie2.get_tk_widget().grid(row = 3, column = 0, columnspan = 3)
         else:
-            for i in self.grid_slaves(row= 3, column = 4):
+            for i in self.grid_slaves(row= 3, column = 0):
                     i.destroy()
 
     def clear_charts(self):
         self.grid_slaves(row = 3, column = 0)[0].destroy()
-        self.grid_slaves(row = 3, column = 5)[0].destroy()
+        # self.grid_slaves(row = 3, column = 5)[0].destroy()
 
     def saveFormula(self):
         # get the current name of the formula
@@ -825,6 +823,10 @@ class PageOne(tk.Frame):
 
     def showPricePerGallon(self) -> None:
         specificGravity = self.grid_slaves(column = 6, row = 0)[0].get()
+        try:
+            self.grid_slaves(column = 6, row = 1)[0].destroy()
+        except:
+            print("How's it?")
         try:
             value = self.ttr.pricePerGallon(float(specificGravity))
             self.ppg = tk.Label(self, text = value) 
@@ -900,10 +902,11 @@ class PageOne(tk.Frame):
             self.targetPriceValue.config(text = "0")
             self.currentPriceValue.config(text = "0")
             if len(self.grid_slaves(row= 3, column = 1)) > 0:
-                for i in self.grid_slaves(row= 3, column = 1):
+                for i in self.grid_slaves(row= 3, column = 0):
                     i.destroy()
-                for i in self.grid_slaves(row= 3, column = 4):
-                    i.destroy()
+                # for i in self.grid_slaves(row= 3, column = 4):
+                #     i.destroy()
+   
         else:    
             ttr= self.formulaGenerator.createTestTubeRack(formula, formulaLocation)
             self.currentFileName = formula
