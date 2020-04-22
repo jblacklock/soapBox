@@ -24,6 +24,7 @@ class SampleApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         Tk.title(self,"SoapBox")
+        Tk.iconbitmap(self,"C:\\Users\\jesse\\Documents\\soapBox\\Boxen.ico")
         self.frames = {}
 
         for F in (StartPage, PageOne):
