@@ -278,11 +278,13 @@ class PageOne(tk.Frame):
         pricePointRow = 0
         pricePointColumn = 4
         labelText = label.cget("text")
-        if rowVal != pricePointRow and colVal != pricePointColumn:
+        if rowVal != 0:
             label.destroy()
             # 7 & 8
             self.grid_slaves(row = rowVal, column = 7)[0]["state"] = "disabled"
             self.grid_slaves(row = rowVal, column = 8)[0]["state"] = "disabled"
+            self.grid_slaves(row = rowVal, column = 9)[0]["state"] = "disabled"
+            self.grid_slaves(row = rowVal, column = 10)[0]["state"] = "disabled"
         self.t = tk.Entry(self) 
         self.t.insert(END, labelText)
         self.t.grid(row= rowVal, column = colVal)
@@ -384,7 +386,7 @@ class PageOne(tk.Frame):
         ingredientName = self.grid_slaves(row= rowVal, column=3)[0].cget("text")
         for i in range(0,len(self.ttr.testTubes)):
             if self.ttr.testTubes[i].name == ingredientName: 
-                newIngredientCost = self.ttr.testTubes[i].getCost()
+                newIngredientCost = round(self.ttr.testTubes[i].getCost(),5)
         self.grid_slaves(row= rowVal, column=6)[0].delete(0, END)
         self.grid_slaves(row= rowVal, column=6)[0].insert(END, newIngredientCost)
         self.batchingInstructions()
@@ -393,7 +395,7 @@ class PageOne(tk.Frame):
         ingredientName = self.grid_slaves(row = rowVal, column = 3)[0].cget("text")
         for i in range(0,len(self.ttr.testTubes)):
             if self.ttr.testTubes[i].name == ingredientName: 
-                newIngredientCost = self.ttr.testTubes[i].concentration
+                newIngredientCost = round(self.ttr.testTubes[i].concentration,5)
         self.grid_slaves(row= rowVal, column=5)[0].delete(0, END)
         self.grid_slaves(row= rowVal, column=5)[0].insert(END, newIngredientCost)
 
@@ -493,10 +495,10 @@ class PageOne(tk.Frame):
                     float(alteredConcentration)
                 except ValueError:
                     self.grid_slaves(row= rowVal, column = 5)[0].clear()
-                    self.grid_slaves(row= rowVal, column = 5)[0].insert(END, self.ttr.testTubes[i].concentration)
+                    self.grid_slaves(row= rowVal, column = 5)[0].insert(END, round(self.ttr.testTubes[i].concentration,5))
                 self.ttr.alterRackTubeConcentration(ingredientName, float(alteredConcentration))
                 self.grid_slaves(row= rowVal, column = 5)[0].delete(0, 'end')
-                self.grid_slaves(row= rowVal, column = 5)[0].insert(END, self.ttr.testTubes[i].concentration)
+                self.grid_slaves(row= rowVal, column = 5)[0].insert(END, round(self.ttr.testTubes[i].concentration,5))
         self.updateCurrentPrice()
         self.updateIngredientCost(rowVal)
 
@@ -510,10 +512,10 @@ class PageOne(tk.Frame):
                     float(alteredConcentration)
                 except ValueError:
                     self.grid_slaves(row= rowVal, column = 6)[0].clear()
-                    self.grid_slaves(row= rowVal, column = 6)[0].insert(END, self.ttr.testTubes[i].getCost())
+                    self.grid_slaves(row= rowVal, column = 6)[0].insert(END, round(self.ttr.testTubes[i].getCost(),5))
                 self.ttr.alterRackTubePrice(ingredientName,float(alteredConcentration))
                 self.grid_slaves(row= rowVal, column = 6)[0].delete(0, 'end')
-                self.grid_slaves(row= rowVal, column = 6)[0].insert(END, self.ttr.testTubes[i].getCost())
+                self.grid_slaves(row= rowVal, column = 6)[0].insert(END, round(self.ttr.testTubes[i].getCost(),5))
         self.updateCurrentPrice()
         self.updateIngredientConcentration(rowVal)
               
@@ -530,6 +532,8 @@ class PageOne(tk.Frame):
         # 7 & 8
         self.grid_slaves(row = rowVal, column = 7)[0]["state"] = "normal"
         self.grid_slaves(row = rowVal, column = 8)[0]["state"] = "normal"
+        self.grid_slaves(row = rowVal, column = 9)[0]["state"] = "normal"
+        self.grid_slaves(row = rowVal, column = 10)[0]["state"] = "normal"
 
     
     def AlterPricePointValue(self, rowVal: int, colVal: int):
@@ -709,7 +713,7 @@ class PageOne(tk.Frame):
         self.updateIngredientCost(rowVal)
 
     def updateCurrentPrice(self):
-        self.currentPriceValue.config(text = str('%.5f'%(self.ttr.getCost())))
+        self.currentPriceValue.config(text = str(round(self.ttr.getCost(),5)))
         self.create_charts()
         self.showPricePerGallon()
 
@@ -831,7 +835,7 @@ class PageOne(tk.Frame):
             print("")
         try:
             value = self.ttr.pricePerGallon(float(specificGravity))
-            self.ppg = tk.Label(self, text = '%.5f'%(value)) 
+            self.ppg = tk.Label(self, text = round(value,5)) 
             self.ppg.grid(row= 1, column = 6)
             self.ListOfWidgets.append(self.ppg)
         except:
@@ -844,7 +848,7 @@ class PageOne(tk.Frame):
             for x in range(0,len(value)):
                 ingredName = value[x][0]
                 properRow = self.dictOfIngredientsAndRows[ingredName]
-                labelContent = '%.5f'%(value[x][1])
+                labelContent = round(value[x][1],5)
                 self.quantity = tk.Label(self, text = labelContent)
                 if len(self.grid_slaves(row= properRow, column=11)) > 0:
                     self.grid_slaves(row= properRow, column = 11)[0].destroy()
@@ -916,7 +920,7 @@ class PageOne(tk.Frame):
             self.create_charts()
             self.showPricePerGallon()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
-            self.currentPriceValue.config(text = str('%.5f'%(ttr.getCost())))
+            self.currentPriceValue.config(text = str(round(ttr.getCost(),5)))
             self.NoteText.insert(INSERT, self.ttr.notes)
             rowVal = 6
             for tt in ttr.testTubes:
