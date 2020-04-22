@@ -72,11 +72,12 @@ class SampleApp(tk.Tk):
     def openFormula(self):
         dirPath = os.path.dirname(__file__)    
         FormulaFileName = filedialog.askopenfilename(initialdir=dirPath+"/Formulas", title="Select Formula", filetypes = (("xlsx files","*.xlsx"),("all files","*.*")))
-        try:
-            print(FormulaFileName)
-            self.show_frame("PageOne", FormulaFileName)
-        except:
-            return
+        # try:
+            # print("This is the formula file: "+FormulaFileName)
+            # self.show_frame("PageOne", FormulaFileName)
+        self.show_frame("PageOne", FormulaFileName)
+        # except:
+        #     return
 
     def show_frame(self, page_name: str, formula: str) -> None:
         '''Show a frame for the given page name'''
@@ -708,7 +709,7 @@ class PageOne(tk.Frame):
         self.updateIngredientCost(rowVal)
 
     def updateCurrentPrice(self):
-        self.currentPriceValue.config(text = str(self.ttr.getCost()))
+        self.currentPriceValue.config(text = str('%.5f'%(self.ttr.getCost())))
         self.create_charts()
         self.showPricePerGallon()
 
@@ -827,10 +828,10 @@ class PageOne(tk.Frame):
         try:
             self.grid_slaves(column = 6, row = 1)[0].destroy()
         except:
-            print("How's it?")
+            print("")
         try:
             value = self.ttr.pricePerGallon(float(specificGravity))
-            self.ppg = tk.Label(self, text = value) 
+            self.ppg = tk.Label(self, text = '%.5f'%(value)) 
             self.ppg.grid(row= 1, column = 6)
             self.ListOfWidgets.append(self.ppg)
         except:
@@ -843,7 +844,7 @@ class PageOne(tk.Frame):
             for x in range(0,len(value)):
                 ingredName = value[x][0]
                 properRow = self.dictOfIngredientsAndRows[ingredName]
-                labelContent = value[x][1]
+                labelContent = '%.5f'%(value[x][1])
                 self.quantity = tk.Label(self, text = labelContent)
                 if len(self.grid_slaves(row= properRow, column=11)) > 0:
                     self.grid_slaves(row= properRow, column = 11)[0].destroy()
@@ -915,9 +916,8 @@ class PageOne(tk.Frame):
             self.create_charts()
             self.showPricePerGallon()
             self.targetPriceValue.config(text = str(ttr.pricePoint))
-            self.currentPriceValue.config(text = str(ttr.getCost()))
+            self.currentPriceValue.config(text = str('%.5f'%(ttr.getCost())))
             self.NoteText.insert(INSERT, self.ttr.notes)
-                       
             rowVal = 6
             for tt in ttr.testTubes:
                 solvName = tt.name

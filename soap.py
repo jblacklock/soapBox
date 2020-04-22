@@ -466,13 +466,14 @@ class rackMaker:
         allTestubes = []
         for x in range(1, i):
             value = sheet.row_values(x)
+            if value[4] == "" and value[5]=="":
+                break
             targetValue += value[4] * value[5]
             allTestubes.append(value)
         targetValue = targetValue/100
         ttr = testTubeRack(formulaName, targetValue)
         for tt in allTestubes:
             ttr.createRackTube(tt[1], tt[2], tt[5], tt[4])
-        
         try:
             ttr.notes = sheet.cell(rowx = 2, colx = 8).value
         except:
