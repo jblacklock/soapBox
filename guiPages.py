@@ -24,18 +24,13 @@ class SampleApp(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
         Tk.title(self,"SoapBox")
-        Tk.iconbitmap(self,"C:\\Users\\jesse\\Documents\\soapBox\\Boxen.ico")
+        Tk.iconbitmap(self, r"C:\Users\wcbla\Desktop\Python\soapBox\soapBox\Boxen.ico")
         self.frames = {}
 
-        for F in (StartPage, PageOne):
-            page_name = F.__name__
-            frame = F(parent=container, controller=self)
-            self.frames[page_name] = frame
-
-            # put all of the pages in the same location;
-            # the one on the top of the stacking order
-            # will be the one that is visible.
-            frame.grid(row=0, column=0, sticky="nsew")
+        page_name = PageOne.__name__
+        frame = PageOne(parent=container, controller=self)
+        self.frames[page_name] = frame
+        frame.grid(row=0, column=0, sticky="nsew")
 
         self.a_frame = PageOne(container, self)
         
@@ -54,16 +49,7 @@ class SampleApp(tk.Tk):
         filemenu.add_command(label="Open .XLSX", command= lambda: self.frames["PageOne"].openFormula())
         filemenu.add_command(label="Delete", command= lambda: self.deleteFormula())
         self.menubar.add_cascade(label="File", menu=filemenu)
-
-        # display the menu
         self.config(menu=self.menubar)
-
-    # def adjust_menu(self, newMenu):
-    #     self.config(self, menu=newMenu)
-
-    # def emptyMenubar(self):
-    #     self.menubar = tk.Menu(self)
-    #     self['menu'] = self.menubar
 
     def deleteFormula(self):
         self.frames["PageOne"].deleteFormula()
@@ -71,7 +57,7 @@ class SampleApp(tk.Tk):
 
     def openFormula(self):
         dirPath = os.path.dirname(__file__)    
-        FormulaFileName = filedialog.askopenfilename(initialdir=dirPath+"/Formulas", title="Select Formula", filetypes = (("xlsx files","*.xlsx"),("all files","*.*")))
+        FormulaFileName = filedialog.askopenfilename(initialdir=dirPath, title="Select Formula", filetypes = (("xlsx files","*.xlsx"),("all files","*.*")))
         # try:
             # print("This is the formula file: "+FormulaFileName)
             # self.show_frame("PageOne", FormulaFileName)
@@ -87,76 +73,11 @@ class SampleApp(tk.Tk):
                 return
             self.frames[page_name].setFormula(formula)
             self.create_menu()
-        if page_name == "StartPage":
-            self.frames[page_name].fetchFormulas()
         frame.tkraise()
-
-
-class StartPage(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        tk.Label(self, text = "Formula Select", font = controller.title_font).grid(row = 0, column = 0, columnspan = 3)
-        ttr = rackMaker()
-        xcelFiles = ttr.getNamesOfExcelFiles()
-        xcelFiles.insert(0, "Create New Formula")
-        self.buttonPositions =[]
-        t = 1
-        y = 0
-        for x in xcelFiles:
-            formButton = tk.Button(self, text = x, width = (100//6), height = 3, fg="white", bg ="teal", command=lambda x=x: controller.show_frame("PageOne", x))
-            formButton.grid(row = t, column = y)
-            y += 1
-            self.buttonPositions.append(formButton)
-            if y == 6:
-                y = 0
-                t += 1
-        
-
-    def fetchFormulas(self):
-        for i in self.buttonPositions:
-            i.destroy()
-
-        ttr = rackMaker()
-        xcelFiles = ttr.getNamesOfExcelFiles()
-        xcelFiles.insert(0, "Create New Formula")
-        t = 1
-        y = 0
-        for x in xcelFiles:
-            formButton = tk.Button(self, text = x, width = (100//6), height = 3, fg="white", bg ="teal", command=lambda x=x: self.controller.show_frame("PageOne", x))
-            formButton.grid(row = t, column = y)
-            y += 1
-            self.buttonPositions.append(formButton)
-            if y == 6:
-                y = 0
-                t += 1
 
 
 
 class PageOne(tk.Frame):
-
-    def replace_menu(self):
-        # _parent_cls_name = type(self.master).__name__
-        # _valid_cls_names = ("Tk", "Toplevel", "Root")
-        # if _parent_cls_name in _valid_cls_names:
-            
-        self.menubar = tk.Menu(self)
-        filemenu = Menu(self.menubar, tearoff=0)
-        filemenu.add_command(label="Save", command=lambda: self.master.show_frame("StartPage", ""))
-        filemenu.add_command(label="Save As", command=lambda: self.master.show_frame("StartPage", ""))
-        filemenu.add_command(label="Open", command=lambda: self.master.show_frame("StartPage", ""))
-        filemenu.add_command(label="Delete", command=lambda: self.master.show_frame("StartPage", ""))
-        filemenu.add_command(label="Back", command=lambda: self.master.show_frame("StartPage", ""))
-    
-        filemenu.add_command(label="Exit", command=self.master.quit)
-        self.menubar.add_cascade(label="File", menu=filemenu)
-        self.master.adjust_menu(self.menubar)
-        self.master['menu'] = self.menubar
-
-            
-            
-
 
     def __init__(self, parent, controller):
 
@@ -171,7 +92,6 @@ class PageOne(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
         formula = "Error"
-        # button = tk.Button(self, text="<- Back", command=lambda: controller.show_frame("StartPage", ""))
         # button.grid(row = 0, column = 0)
         self.label = tk.Label(self, text = formula, font=controller.title_font)
         self.label.grid(row = 0, column = 0, columnspan = 3, rowspan = 2)
@@ -821,11 +741,6 @@ class PageOne(tk.Frame):
         # set current name of formula as the file whcih currently exists
         self.currentFileName = SaveAsFormulaName    
         self.label.config(text = SaveAsFormulaName)
-
-    def deleteFormula(self):
-        fileNameToDelete = self.currentFileName
-        self.formulaGenerator.deleteFormula(fileNameToDelete)
-        self.controller.show_frame("StartPage", "")
 
     def showPricePerGallon(self) -> None:
         specificGravity = self.grid_slaves(column = 6, row = 0)[0].get()

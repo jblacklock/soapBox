@@ -432,12 +432,6 @@ class testTubeRack:
                 self.fillToPrice(solvents)
                 return
 
-        # if self.getCost() > self.pricePoint:
-        #     self.emptyTubes(solvents)
-        # if self.getCost() < self.pricePoint:
-        #     self.fillToPrice(solvents)
-
-
     def batchingInstructions(self, batchSize:float) -> List[Any]:
         ingredientAmount = [] # initialize the list of names and batching amount
         for tt in self.testTubes:
@@ -449,8 +443,6 @@ class testTubeRack:
         lbPerGram = 1/453.592 # conversion 1 lb == 453.592 grams
         mlPerGallon = 3785.41 # conversion 1 gallon == 3785.41 ml
         return self.getCost() * lbPerGram * specificGravity * mlPerGallon # Calculates the price per gallon. * requires specific gravity input
-
-
 
 #######################################################################################################################################################################
 
@@ -484,40 +476,12 @@ class rackMaker:
             print("")
 
         return ttr
-
-
-    def getNamesOfExcelFiles(self) -> List[str]: 
-        dirPath = os.path.dirname(__file__)    
-        os.chdir(dirPath+"/Formulas")
-        fileNames = []
-        for file in glob.glob("*.xlsx"):
-            file = file[:-5]
-            fileNames.append(file)
-        return fileNames
-
-    def deleteFormula(self, fileToDelete: str):
-        dirPath = os.path.dirname(__file__)  
-        os.chdir(dirPath + "\\Formulas")
-        try:
-            os.remove(fileToDelete + ".xlsx")
-        except:
-            return
-
-
-    def openExcelFile(self, fileName: str, oldFileName: str, formula : testTubeRack) -> None:
-        # does not need alteration for new formula
-        self.saveFormula(fileName, oldFileName, formula)
-        dirPath = os.path.dirname(__file__)  
-        fileName = fileName+".xlsx"
-        truePath = dirPath+"\\Formulas\\"+fileName
-        os.startfile(truePath)
             
-    
     def saveFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> None:
         # for new formula, set "oldFileName" to ""
         # no alteration needed for new formula
-        dirPath = os.path.dirname(__file__)  
-        os.chdir(dirPath + "\\Formulas")
+        dirPath = r"C:\Users\wcbla\Desktop\SoapBoxFormulas"
+        os.chdir(dirPath)
         if oldFileName != "":
             # destroy oldFileName
             os.remove(oldFileName + ".xlsx")
@@ -525,11 +489,10 @@ class rackMaker:
         ttr.name = fileName
         ttr.exportFormula()
 
-
     def saveAsFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> str:
         # no alteration needed for new formula
-        dirPath = os.path.dirname(__file__)  
-        os.chdir(dirPath + "\\Formulas")
+        dirPath = r"C:\Users\wcbla\Desktop\SoapBoxFormulas"
+        os.chdir(dirPath)
         # if filename exists  in directory
         if path.exists(fileName + ".xlsx"):
             # if the last value of filename is )
@@ -577,4 +540,3 @@ class rackMaker:
             self.saveFormula(fileName, "", ttr)
             ttr.name = fileName
             return fileName
-    
