@@ -608,38 +608,49 @@ class testTubeRack:
 
 class rackMaker:
 
+    # initializes and manipulates test tube racks
     def createTestTubeRack(self, formulaName: str, formulaLoc: str) -> testTubeRack:
-         # To open Workbook 
+        # opens workbook 
         wb = xlrd.open_workbook(formulaLoc) 
+        # get the first sheet in the workbook
         sheet = wb.sheet_by_index(0) 
+        # number of rows with content
         i = sheet.nrows
-        # sheet.row_values(1)
         targetValue = 0
         allTestubes = []
+        # get info for each of the ingredients
         for x in range(1, i):
+            # creates array based on rows
             value = sheet.row_values(x)
+            # handles formulas with notes but no more than one (or two?) ingrdients
             if value[4] == "" and value[5]=="":
                 break
             targetValue += value[4] * value[5]
             allTestubes.append(value)
+        # calculate target value
         targetValue = targetValue/100
+        # create test tube rack
         ttr = testTubeRack(formulaName, targetValue)
+        # creates test tubes
         for tt in allTestubes:
             ttr.createRackTube(tt[1], tt[2], tt[5], tt[4])
         try:
+            # add notes, if any
             ttr.notes = sheet.cell(rowx = 2, colx = 8).value
         except:
             print("")
         try:
+            # add pricepoint, if any
             ttr.pricePoint = float(sheet.cell(rowx = 0, colx = 8).value)
         except:
             print("")
-
+        # return test tube rack
         return ttr
 
 
 
     # TODO: determine why this method was removed?
+    # yeah, turns out this is necessary
     # def deleteFormula(self, fileToDelete: str):
     #     dirPath = os.path.dirname(__file__)  
     #     os.chdir(dirPath + "\\Formulas")
@@ -650,12 +661,16 @@ class rackMaker:
 
 
 
-    
+    # Opens excel files
     def openExcelFile(self, fileName: str, oldFileName: str, formula : testTubeRack) -> None:
         # does not need alteration for new formula
         self.saveFormula(fileName, oldFileName, formula)
+        # get path to source code
         dirPath = os.path.dirname(__file__)  
+        # names the file
         fileName = fileName+".xlsx"
+        # TODO: this may need to be fixed or adjusted
+        # add to Formulas folder 
         truePath = dirPath+"\\Formulas\\"+fileName
         os.startfile(truePath)
             
@@ -664,7 +679,10 @@ class rackMaker:
     def saveFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> None:
         # for new formula, set "oldFileName" to ""
         # no alteration needed for new formula
+        # gets path to desktop
+        # TODO: get this to make Formula folder in desktop if one doesn't already exist
         dirPath = os.path.join(os.environ["HOMEPATH"], "Desktop")
+        # save to Formulas folder
         os.chdir(dirPath + "\\Formulas")
         if oldFileName != "":
             # destroy oldFileName
@@ -674,7 +692,7 @@ class rackMaker:
         ttr.exportFormula()
 
 
-
+    # formula save as 
     def saveAsFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> str:
         # no alteration needed for new formula
         dirPath = os.path.join(os.environ["HOMEPATH"], "Desktop")
