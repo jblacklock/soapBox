@@ -76,7 +76,7 @@ class SampleApp(tk.Tk):
     # opens formula from .xlsx
     def openFormula(self):
         # sets current directory to location of source code 
-        dirPath = os.path.dirname(__file__)    
+        dirPath = os.path.dirname(__file__)+"\\Formulas"    
         # create interface for users to select file
         FormulaFileName = filedialog.askopenfilename(initialdir=dirPath, title="Select Formula", filetypes = (("xlsx files","*.xlsx"),("all files","*.*")))
         print(FormulaFileName)
@@ -294,12 +294,17 @@ class PageOne(tk.Frame):
         if rowVal != self.targetPriceValueRow:
             # TODO: this may be the cause of the change ingredient name bug
             # destroy the label
-            label.destroy()
+            # 1:12 - 05/05/2020
+            # label.destroy()
             # disable name sensative actions on this row
-            self.grid_slaves(row = rowVal, column = self.fillButtonColumn)[0]["state"] = "disabled"
-            self.grid_slaves(row = rowVal, column = self.deleteButtonColumn)[0]["state"] = "disabled"
-            self.grid_slaves(row = rowVal, column = self.upButtonColumn)[0]["state"] = "disabled"
-            self.grid_slaves(row = rowVal, column = self.downButtonColumn)[0]["state"] = "disabled"
+            # self.grid_slaves(row = rowVal, column = self.fillButtonColumn)[0]["state"] = "disabled"
+            # self.grid_slaves(row = rowVal, column = self.deleteButtonColumn)[0]["state"] = "disabled"
+            for i in range(self.topRow, self.lastIngredientRow):
+                try:
+                    self.grid_slaves(row = i, column = self.upButtonColumn)[0]["state"] = "disabled"
+                    self.grid_slaves(row = i, column = self.downButtonColumn)[0]["state"] = "disabled"
+                except:
+                    print("What happened to row number "+str(i)+"?")
         # create a new entry
         self.t = tk.Entry(self, background =self.secondColor, foreground = self.textColor, borderwidth = 0, highlightthickness = 0)
         # insert the label content into the entry 
@@ -318,9 +323,10 @@ class PageOne(tk.Frame):
         elif colVal == self.pricePerPoundColumn:
             # if the label of the price per lb is being changed, bind the function to the entry which changes price per lb
             # first get theingredient's name
-            ingred = self.grid_slaves(row = rowVal, column = self.ingedNameColumn)[0]
+            ingred = self.getIngredientNameFromRow(rowVal)
+            print("This is the ingredient name: "+ingred)
             # then bind the function to the entry
-            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal: self.changeIngredientNameThenReturnToLabel(rowVal, colVal, ingred['text'], "pricePerLB"))
+            self.t.bind("<Return>", lambda e, labelText = labelText, rowVal = rowVal, colVal = colVal: self.changeIngredientNameThenReturnToLabel(rowVal, colVal, ingred, "pricePerLB"))
         # nothing should reach this else statement
         # if it does, the change won't be reflected in the backend
         else: self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal: self.ReturnToLabel(rowVal, colVal))
@@ -665,6 +671,7 @@ class PageOne(tk.Frame):
         labelContent = entryToRemove.get()
         # destroy entry
         entryToRemove.destroy()
+        self.grid_slaves(row = rowVal, column = colVal)[0].destroy()
         # makes new label based on entry
         self.n = tk.Label(self, text = labelContent, background = self.backgroundColor, foreground = self.textColor) 
         # places label
@@ -674,11 +681,25 @@ class PageOne(tk.Frame):
         self.n.bind("<Button-1>",lambda e, n=self.n, rowVal = rowVal, colVal = colVal:self.changeLabel(n, rowVal, colVal))
         # TODO: refactor - turn into loop
         # reactiates buttons based on ingredient name
-        self.grid_slaves(row = rowVal, column = self.fillButtonColumn)[0]["state"] = "normal"
-        self.grid_slaves(row = rowVal, column = self.deleteButtonColumn)[0]["state"] = "normal"
-        self.grid_slaves(row = rowVal, column = self.upButtonColumn)[0]["state"] = "normal"
-        self.grid_slaves(row = rowVal, column = self.downButtonColumn)[0]["state"] = "normal"
+        self.returnSwapButton()
 
+
+
+    def returnSwapButton(self):
+        for i in range(self.rmnColumn, self.pricePerPoundColumn + 1):
+            for x in range(self.topRow, self.lastIngredientRow):
+                try:
+                    if len(self.grid_slaves(row = x, column = i)) > 1:
+                        return
+                except: 
+                    print("What happened to row number "+str(x)+"?")
+        print("This is the lastIngredientRow: "+str(self.lastIngredientRow))
+        for i in range(self.topRow, self.lastIngredientRow):
+            try:
+                self.grid_slaves(row = i, column = self.upButtonColumn)[0]["state"] = "normal"
+                self.grid_slaves(row = i, column = self.downButtonColumn)[0]["state"] = "normal"
+            except: 
+                print("Where is row number "+str(i)+"?")
     
 
     # Changes the price point of the formula
@@ -713,7 +734,8 @@ class PageOne(tk.Frame):
             self.removeHeadings()
         # destroys all widgets for the chosen ingredient in the front end
         for j in range(0,12):
-            self.grid_slaves(row = rowVal, column = j)[0].grid_remove()
+            for w in self.grid_slaves(row = rowVal, column = j):
+                w.grid_remove()
         # update the price of the formula
         self.updateCurrentPrice()
         # update charts
@@ -903,8 +925,11 @@ class PageOne(tk.Frame):
 
     # gets ingredient name given row
     def getIngredientNameFromRow(self, rowVal: int) -> str:
-        return self.grid_slaves(row = rowVal, column = self.ingedNameColumn)[0]['text']
-
+        listOfWidgets = self.grid_slaves(row = rowVal, column = self.ingedNameColumn)
+        if len(listOfWidgets) < 2:
+            return self.grid_slaves(row = rowVal, column = self.ingedNameColumn)[0]['text']
+        else: 
+            return self.grid_slaves(row = rowVal, column = self.ingedNameColumn)[1]['text']
 
 
     # fills an ingredient to the highest concentration possible
