@@ -662,40 +662,50 @@ class rackMaker:
 
 
     # Opens excel files
-    def openExcelFile(self, fileName: str, oldFileName: str, formula : testTubeRack) -> None:
+    def openExcelFile(self, fileName: str, oldFileName: str, formula : testTubeRack) -> str:
         # does not need alteration for new formula
-        self.saveFormula(fileName, oldFileName, formula)
+        currentFileName = self.saveFormula(fileName, oldFileName, formula)
         # get path to source code
-        dirPath = os.path.dirname(__file__)  
+        # dirPath = os.path.dirname(__file__)  
         # names the file
-        fileName = fileName+".xlsx"
+        # fileName = fileName+".xlsx"
         # TODO: this may need to be fixed or adjusted
         # add to Formulas folder 
-        truePath = dirPath+"\\Formulas\\"+fileName
-        os.startfile(truePath)
+        # truePath = dirPath+"\\Formulas\\"+fileName
+        os.startfile(currentFileName)
+        return currentFileName
             
     
 
-    def saveFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> None:
+    def saveFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> str:
         # for new formula, set "oldFileName" to ""
         # no alteration needed for new formula
         # gets path to desktop
         # TODO: get this to make Formula folder in desktop if one doesn't already exist
-        dirPath = os.path.join(os.environ["HOMEPATH"], "Desktop")
+        # dirPath = os.path.join(os.environ["HOMEPATH"], "Desktop")
+        
+        dirPath = os.path.dirname(__file__)+ "\\Formulas"  
         # save to Formulas folder
-        os.chdir(dirPath + "\\Formulas")
+        os.chdir(dirPath)
+        newCurrentFileName = dirPath+"\\"+fileName+".xlsx"
         if oldFileName != "":
             # destroy oldFileName
-            os.remove(oldFileName + ".xlsx")
+            os.remove(oldFileName)
+            locaysh = oldFileName.rfind("/")
+            direct = oldFileName[:locaysh + 1]
+            os.chdir(direct)
+            newCurrentFileName = direct+"\\"+fileName+".xlsx"
         # write the new file
         ttr.name = fileName
         ttr.exportFormula()
+        return newCurrentFileName
 
 
     # formula save as 
     def saveAsFormula(self, fileName: str, oldFileName: str, ttr: testTubeRack) -> str:
         # no alteration needed for new formula
-        dirPath = os.path.join(os.environ["HOMEPATH"], "Desktop")
+        # dirPath = os.path.join(os.environ["HOMEPATH"], "Desktop")
+        dirPath = os.path.dirname(__file__)  
         os.chdir(dirPath + "\\Formulas")
         # if filename exists  in directory
         if path.exists(fileName + ".xlsx"):
@@ -744,3 +754,21 @@ class rackMaker:
             self.saveFormula(fileName, "", ttr)
             ttr.name = fileName
             return fileName
+
+
+    # formula save as 
+    def saveAs(self, fileName: str, ttr: testTubeRack) -> str:
+        # write the new file
+        form = fileName
+        locaysh = fileName.rfind("/")
+        form = form[locaysh + 1:]
+        direct = fileName[:locaysh + 1]
+        print("This is the file location: "+direct)
+
+        os.chdir(direct)
+
+        ttr.name = form
+        ttr.exportFormula()
+        print("This is the form: "+form)
+        return form
+       

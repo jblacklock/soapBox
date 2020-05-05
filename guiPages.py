@@ -52,11 +52,11 @@ class SampleApp(tk.Tk):
         # option for saving formula
         filemenu.add_command(label="Save", command=lambda: self.frames["PageOne"].saveFormula())
         # option for Save As
-        # filemenu.add_command(label="Save As", command=lambda: self.frames["PageOne"].saveAsFormula())
+        filemenu.add_command(label="Save As", command=lambda: self.frames["PageOne"].saveAsFormula())
         # option for opening .xlsx
         filemenu.add_command(label="Open .XLSX", command= lambda: self.frames["PageOne"].openFormula())
         # option for deleting formula
-        filemenu.add_command(label="Delete", command= lambda: self.deleteFormula())
+        # filemenu.add_command(label="Delete", command= lambda: self.deleteFormula())
         # names option "File"
         self.menubar.add_cascade(label="File", menu=filemenu)
         self.config(menu=self.menubar)
@@ -79,6 +79,7 @@ class SampleApp(tk.Tk):
         dirPath = os.path.dirname(__file__)    
         # create interface for users to select file
         FormulaFileName = filedialog.askopenfilename(initialdir=dirPath, title="Select Formula", filetypes = (("xlsx files","*.xlsx"),("all files","*.*")))
+        print(FormulaFileName)
         # sets page with formula
         self.show_frame("PageOne", FormulaFileName)
 
@@ -268,6 +269,8 @@ class PageOne(tk.Frame):
         if vari in self.ListOfVari: self.ListOfVari.remove(vari)
         # otherwise, add it to the list of vari
         else: self.ListOfVari.append(vari) 
+        for tt in self.ListOfVari:
+            print(tt)
         # check to see if the vari buttons should be enabled or not
         self.CheckForVaris()
 
@@ -323,6 +326,8 @@ class PageOne(tk.Frame):
         else: self.t.bind("<Return>", lambda e, rowVal = rowVal, colVal = colVal: self.ReturnToLabel(rowVal, colVal))
         # add this entry to the list of widgets to be destroyed if the user selects a different formula
         self.ListOfWidgets.append(self.t)
+
+
 
     # changes the name of the formula
     def changeFormulaName(self):
@@ -400,15 +405,18 @@ class PageOne(tk.Frame):
 
 
     # changes the name, raw material number, or price per pound of the ingredient
-    # TODO: change the name of this function
     def changeIngredientName(self, oldIngredientName: str, contentType: str, rowVal: int, colVal: int) -> bool:
         # getsentry content
         newIngredientName = self.grid_slaves(row = rowVal, column = colVal)[0].get()
         # exits if the entry is empty
         if newIngredientName == "":
-            return
+            return False
         # if the ingredient's name is changing...
         if contentType == "name":
+            if oldIngredientName != newIngredientName:
+                for i in range(0,len(self.ttr.testTubes)):
+                    if self.ttr.testTubes[i].name == newIngredientName:
+                        return False
             for i in range(0,len(self.ttr.testTubes)):
                 # find the test tube with the old name
                 if self.ttr.testTubes[i].name == oldIngredientName:
@@ -418,6 +426,10 @@ class PageOne(tk.Frame):
                     return True 
         # if the raw material number is changing...
         elif contentType == "rawMaterialNumber":
+            if oldIngredientName != newIngredientName:
+                for i in range(0,len(self.ttr.testTubes)):
+                    if self.ttr.testTubes[i].rawMaterialNumber == newIngredientName:
+                        return False
             # find the test tube with the old rmn...
             for i in range(0,len(self.ttr.testTubes)):
                 if self.ttr.testTubes[i].rawMaterialNumber == oldIngredientName: 
@@ -505,6 +517,9 @@ class PageOne(tk.Frame):
         solvName = top.grid_slaves(row = 2, column = 1)[0].get()
         # get pplb from new ingredient window
         ef = top.grid_slaves(row = 3, column = 1)[0].get()
+        for i in range(0,len(self.ttr.testTubes)):
+            if self.ttr.testTubes[i].name == solvName or self.ttr.testTubes[i].rawMaterialNumber == ab:
+                return
         # fails to add ingredient if ingredient name or rmn is empty
         if len(ab) == 0 or len(solvName) == 0:
             return
@@ -576,6 +591,11 @@ class PageOne(tk.Frame):
             self.p = tk.Button(self, text = "↓", command = lambda rowVal = rowVal: self.MoveDown(rowVal)) 
             self.p.grid(row= rowVal, column = self.downButtonColumn, padx = 2)
             self.ListOfWidgets.append(self.p)
+
+            self.bs = tk.Label(self, text = "0", background = self.backgroundColor, foreground = self.textColor) 
+            self.bs.grid(row= rowVal, column = self.batchingInstructionsColumn)
+            self.ListOfWidgets.append(self.bs)
+            self.bs.bind("<Button-1>",lambda e, bs=self.bs, rowVal = rowVal: self.changeLabel(bs, rowVal, self.batchingInstructionsColumn))
             # indicate that this row is no longer empty
             self.lastIngredientRow += 1
     
@@ -692,12 +712,8 @@ class PageOne(tk.Frame):
         if len(self.ttr.testTubes) == 0:
             self.removeHeadings()
         # destroys all widgets for the chosen ingredient in the front end
-        for j in range(0,11):
+        for j in range(0,12):
             self.grid_slaves(row = rowVal, column = j)[0].grid_remove()
-        try:
-            self.grid_slaves(row = rowVal, column = 11)[0].grid_remove()
-        except:
-            print("")
         # update the price of the formula
         self.updateCurrentPrice()
         # update charts
@@ -724,6 +740,8 @@ class PageOne(tk.Frame):
     def removeFromVari(self, ingredientName: str):
         if ingredientName in self.ListOfVari:
             self.ListOfVari.remove(ingredientName)
+        else:
+            print("Where is the Vari?")
 
 
 
@@ -733,8 +751,18 @@ class PageOne(tk.Frame):
         # Can't move a row higher than 6
         if rowVal == self.topRow:
             return
-        topRowVal = rowVal - 1
+        counter = rowVal - 1
+        topRowVal = 0
+        while topRowVal == 0:
+            try:
+                self.getIngredientNameFromRow(counter)
+                topRowVal = counter
+            except:
+                counter -= 1
+                if counter < self.topRow:
+                    return
         # collect values from top row
+        print("The row: "+str(topRowVal))
         topRMN = self.grid_slaves(row = topRowVal, column = self.rmnColumn)[0]['text']
         topsolvName = self.grid_slaves(row = topRowVal, column = self.ingedNameColumn)[0]['text']
         topPPLB = self.grid_slaves(row = topRowVal, column = self.pricePerPoundColumn)[0]['text']
@@ -766,7 +794,16 @@ class PageOne(tk.Frame):
         # Can't move a row lower than the last ingredient row
         if rowVal >= (self.lastIngredientRow -1):
             return
-        topRowVal = rowVal + 1
+        counter = rowVal + 1
+        topRowVal = 0
+        while topRowVal == 0:
+            try:
+                self.getIngredientNameFromRow(counter)
+                topRowVal = counter
+            except:
+                counter += 1
+                if counter >= self.lastIngredientRow -1:
+                    return
         # collect values from top row
         topRMN = self.grid_slaves(row = topRowVal, column = self.rmnColumn)[0]['text']
         topsolvName = self.grid_slaves(row = topRowVal, column = self.ingedNameColumn)[0]['text']
@@ -974,10 +1011,9 @@ class PageOne(tk.Frame):
         # get the current name of the formula
         newName = self.label['text']
         # get the name of the file which currently exists
-        # self.currentFileName 
-        self.formulaGenerator.saveFormula(newName, self.currentFileName, self.ttr)
+        self.currentFileName = self.formulaGenerator.saveFormula(newName, self.currentFileName, self.ttr)
         # set current name of formula as the file whcih currently exists
-        self.currentFileName = newName
+        print(self.currentFileName)
 
 
 
@@ -986,20 +1022,25 @@ class PageOne(tk.Frame):
         # get the current name of the formula
         newName = self.label['text']
         # get the name of the file which currently exists
-        self.formulaGenerator.openExcelFile(newName, self.currentFileName, self.ttr)
+        self.currentFileName = self.formulaGenerator.openExcelFile(newName, self.currentFileName, self.ttr)
         # set current name of formula as the file whcih currently exists
-        self.currentFileName = newName
+        
 
 
 
 
     def saveAsFormula(self) -> None:
         # get the current name of the formula
-        newName = self.label['text']
+        # newName = self.label['text']
         # get the name of the file which currently exists
-        SaveAsFormulaName = self.formulaGenerator.saveAsFormula(newName, self.currentFileName, self.ttr)
+        dirPath = os.path.dirname(__file__)    
+        # create interface for users to select file
+        
+        FormulaFileName = filedialog.asksaveasfilename(initialdir=dirPath + "\\Formulas", title="Save Formula As", filetypes = (("xlsx files","*.xlsx"),("all files","*.*")))
+        print("This is the FormulaFileName "+FormulaFileName)
+        SaveAsFormulaName = self.formulaGenerator.saveAs(FormulaFileName, self.ttr)
         # set current name of formula as the file whcih currently exists
-        self.currentFileName = SaveAsFormulaName    
+        self.currentFileName = FormulaFileName+".xlsx"    
         self.label.config(text = SaveAsFormulaName)
 
 
@@ -1081,6 +1122,11 @@ class PageOne(tk.Frame):
 
 
     def setFormula(self, formulaLocation: str):
+        print("This is the formulaLocation: "+formulaLocation)
+        try:
+            self.removeHeadings()
+        except: 
+            print("no headings present")
         self.rmnColumn = 2
         self.ingedNameColumn = 3
         self.pricePerPoundColumn = 4
@@ -1154,7 +1200,7 @@ class PageOne(tk.Frame):
                 #     i.destroy()
         else:    
             ttr= self.formulaGenerator.createTestTubeRack(formula, formulaLocation)
-            self.currentFileName = formula
+            self.currentFileName = formulaLocation
             self.ttr = ttr
             self.create_charts()
             self.showPricePerGallon()
