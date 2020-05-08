@@ -291,6 +291,7 @@ class PageOne(tk.Frame):
     def changeLabel(self, label: Label, rowVal: int, colVal:int):
         # get the content of the label
         labelText = label.cget("text")
+        label.config(fg= self.backgroundColor)
         if rowVal != self.targetPriceValueRow:
             # TODO: this may be the cause of the change ingredient name bug
             # destroy the label
